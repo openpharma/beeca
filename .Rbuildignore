@@ -10,3 +10,4 @@ manifest.json
 .gitlab-ci.yml
 ^\.covrignore$
 ^libs$
+^\.github$
