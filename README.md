@@ -4,7 +4,7 @@
 
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable) 
 [![CRAN status](https://www.r-pkg.org/badges/version/beeca)](https://CRAN.R-project.org/package=beeca)
-
+[![R-CMD-check](https://github.com/openpharma/beeca/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/openpharma/beeca/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of **beeca** is to provide an implementation solution with a simple user interface to estimate marginal estimands in a binary endpoint setting with covariate adjustment. The primary aim of this lightweight implementation is to facilitate quick industry adoption and use within GxP environments. A secondary aim is to support the simulation studies included in the manuscript [Magirr et al. (2024)](https://osf.io/9mp58/). 
