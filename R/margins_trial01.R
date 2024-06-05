@@ -1,0 +1,24 @@
+#' Output from the Margins SAS macro applied to the trial01 dataset
+#'
+#' For purposes of implementation comparisons, these are the result outputs from
+#' the SAS Margins macro (https://support.sas.com/kb/63/038.html), applied to the
+#' trial01 dataset included with beeca, adjusting for treatment (trtp) and a
+#' single covariate (bl_cov) and targeting a risk difference contrast.
+#'
+#' @format `margins_trial01`
+#' A tibble with 1 row and 11 columns:
+#' \describe{
+#'    \item{Estimate}{Marginal risk difference estimate}
+#'    \item{ChiSq}{Wald Chi-Square statistic}
+#'    \item{Row}{Row number}
+#'    \item{StdErr}{Standard error of marginal risk difference estimate}
+#'    \item{Lower}{Lower bound of 95 percent confidence interval of estimate}
+#'    \item{Upper}{Upper bound of 95 percent confidence interval of estimate}
+#'    \item{Contrast}{Descriptive label for contrast}
+#'    \item{df}{Degrees of freedom}
+#'    \item{Pr}{p-value}
+#'    \item{Alpha}{Significance level alpha}
+#'    \item{label}{Label for contrast}
+#' }
+#'
+"margins_trial01"

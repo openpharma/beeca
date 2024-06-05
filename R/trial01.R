@@ -1,0 +1,16 @@
+#' Example trial dataset 01
+#'
+#' A simplified example of a simulated trial dataset, with missing data.
+#'
+#' @format `trial01`
+#' A data frame with 268 rows and 9 columns:
+#' \describe{
+#'    \item{usubjid}{Unique subject identifier}
+#'    \item{aval}{Primary outcome variable (1 = yes/0 = no)}
+#'    \item{trtp}{Planned treatment}
+#'    \item{bl_cov}{Baseline covariate (numeric)}
+#'    \item{bl_cov_c}{Dichotomized version of bl_cov (category of 1 or 0)}
+#'    \item{region_2, ..., region_5}{Indicators for region (1 = yes/0 = no)}
+#' }
+#'
+"trial01"

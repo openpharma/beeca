@@ -1,0 +1,12 @@
+^beeca\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^data-raw$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^vignettes/articles$
+manifest.json
+.gitlab-ci.yml
+^\.covrignore$
+^libs$
