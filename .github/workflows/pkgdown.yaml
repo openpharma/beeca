@@ -39,7 +39,7 @@ jobs:
 
       - name: Install archived dependencies (margins)
         run: |
-          R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/margins/margins_0.3.0.tar.gz")
+          R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/margins/margins_0.3.0.tar.gz")'
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
