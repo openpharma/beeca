@@ -62,9 +62,12 @@ Below we show how to describe and perform an adjusted analysis targeting margina
 
 A logistic regression model will be used to estimate the average treatment effect between Xanomeline High Dose and Placebo. The model will adjust for baseline values of patient sex, race and age. Difference in marginal response proportions with p-value and corresponding 95% confidence interval will be estimated from the logistic regression model using the methodology described in Ge et al. 2011 with sandwich variance estimator (Liu et al. 2023). The sandwich estimator provides robustness to model-misspecification.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(beeca)
 library(dplyr)
+```
+
+```{r}
 ## Prepare the dataset for input
 dat <- trial02_cdisc %>%
   ## In this case we are only interested in comparing two arms: Placebo vs Xanomeline High Dose
