@@ -10,7 +10,7 @@
 The goal of **beeca** is to provide an implementation solution with a simple user interface to estimate marginal estimands in a binary endpoint setting with covariate adjustment. The primary aim of this lightweight implementation is to facilitate quick industry adoption and use within GxP environments. A secondary aim is to support the simulation studies included in the manuscript [Magirr et al. (2024)](https://osf.io/9mp58/). 
 
 
-## Installation (after release)
+## Installation
 
 Type | Source | Command
 ---|---|---
@@ -23,7 +23,7 @@ Motivated by the recent [FDA guidance (2023)](https://www.fda.gov/regulatory-inf
 
 ## Scope
 
-The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications covariate adjustment in superiority vs, non-inferiority trials, please see [Nicholas et al. (2015)](https://doi.org/10.1002%2Fsim.6447) and [Morris et al. (2022)](https://doi.org/10.1186/s13063-022-06097-z).
+The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications of covariate adjustment in superiority vs non-inferiority trials, please see [Nicholas et al. (2015)](https://doi.org/10.1002%2Fsim.6447) and [Morris et al. (2022)](https://doi.org/10.1186/s13063-022-06097-z).
 
 ## Example
 
@@ -45,7 +45,7 @@ fit1$marginal_results
 
 ## Package documentation 
 
-The package documentation can be found [here](openpharma.github.io/beeca/). For a brief overview of the different estimand and their estimations, please see vignette [`vignette("estimand_and_implementations")`](https://openpharma.github.io/beeca/main/articles/estimand_and_implementations.html).
+The package documentation can be found [here](https://openpharma.github.io/beeca/). For a brief overview of the different estimands and their estimation, please see vignette [`vignette("estimand_and_implementations")`](https://openpharma.github.io/beeca/articles/estimand_and_implementations.html).
 
 ## Quality checks
 
@@ -60,7 +60,7 @@ Where possible we have cross checked the {beeca} package with alternative implem
 
 ## Acknowledgments
 
-Our lightweight implementation was inspired and aided by the more comprehensive [RobinCar](https://cran.r-project.org/package=RobinCar/) package, developed by
+Our lightweight implementation was inspired and aided by the more comprehensive [{RobinCar}](https://cran.r-project.org/package=RobinCar/) package, developed by
 Marlena Bannick, Ting Ye et al. We thank the [ASA-BIOP Covariate Adjustment Scientific Working Group](https://carswg.github.io/) for valuable feedback and discussions. 
 
 Further development of covariate adjustment software is by the [Software Subteam](https://carswg.github.io/subteam_software.html) of ASA-BIOP Covariate Adjustment Scientific Working Group.
@@ -71,6 +71,6 @@ Further development of covariate adjustment software is by the [Software Subteam
 
 * Ge, Miaomiao, L Kathryn Durham, R Daniel Meyer, Wangang Xie, and Neal Thomas. 2011. "Covariate-Adjusted Difference in Proportions from Clinical Trials Using Logistic Regression and Weighted Risk Differences." *Drug Information Journal: DIJ/Drug Information Association* 45: 481--93. <https://link.springer.com/article/10.1177/009286151104500409>
 
-* Magirr, Dominic, Mark Baillie, Craig Wang, and Alexander Przybylski. 2024. “Estimating the Variance of Covariate-Adjusted Estimators of Average Treatment Effects in Clinical Trials with Binary Endpoints.” OSF. May 16. osf.io/9mp58.
+* Magirr, Dominic, Mark Baillie, Craig Wang, and Alexander Przybylski. 2024. “Estimating the Variance of Covariate-Adjusted Estimators of Average Treatment Effects in Clinical Trials with Binary Endpoints.” OSF. May 16. <https://osf.io/9mp58>.
 
 * Ye, Ting, Marlena Bannick, Yanyao Yi, and Jun Shao. 2023. "Robust Variance Estimation for Covariate-Adjusted Unconditional Treatment Effect in Randomized Clinical Trials with Binary Outcomes." *Statistical Theory and Related Fields* 7 (2): 159--63. <https://doi.org/10.1080/24754269.2023.2205802>
