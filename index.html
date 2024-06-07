@@ -66,7 +66,7 @@
 
 <p>The goal of <strong>beeca</strong> is to provide an implementation solution with a simple user interface to estimate marginal estimands in a binary endpoint setting with covariate adjustment. The primary aim of this lightweight implementation is to facilitate quick industry adoption and use within GxP environments. A secondary aim is to support the simulation studies included in the manuscript <a href="https://osf.io/9mp58/" class="external-link">Magirr et al. (2024)</a>.</p>
 <div class="section level2">
-<h2 id="installation-after-release">Installation (after release)<a class="anchor" aria-label="anchor" href="#installation-after-release"></a>
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <table class="table">
 <thead><tr class="header">
@@ -96,7 +96,7 @@
 <div class="section level2">
 <h2 id="scope">Scope<a class="anchor" aria-label="anchor" href="#scope"></a>
 </h2>
-<p>The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications covariate adjustment in superiority vs, non-inferiority trials, please see <a href="https://doi.org/10.1002%2Fsim.6447" class="external-link">Nicholas et al. (2015)</a> and <a href="https://doi.org/10.1186/s13063-022-06097-z" class="external-link">Morris et al. (2022)</a>.</p>
+<p>The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications of covariate adjustment in superiority vs non-inferiority trials, please see <a href="https://doi.org/10.1002%2Fsim.6447" class="external-link">Nicholas et al. (2015)</a> and <a href="https://doi.org/10.1186/s13063-022-06097-z" class="external-link">Morris et al. (2022)</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -118,7 +118,7 @@
 <div class="section level2">
 <h2 id="package-documentation">Package documentation<a class="anchor" aria-label="anchor" href="#package-documentation"></a>
 </h2>
-<p>The package documentation can be found <a href="openpharma.github.io/beeca/">here</a>. For a brief overview of the different estimand and their estimations, please see vignette <a href="https://openpharma.github.io/beeca/main/articles/estimand_and_implementations.html"><code>vignette("estimand_and_implementations")</code></a>.</p>
+<p>The package documentation can be found <a href="https://openpharma.github.io/beeca/">here</a>. For a brief overview of the different estimands and their estimation, please see vignette <a href="https://openpharma.github.io/beeca/articles/estimand_and_implementations.html"><code>vignette("estimand_and_implementations")</code></a>.</p>
 </div>
 <div class="section level2">
 <h2 id="quality-checks">Quality checks<a class="anchor" aria-label="anchor" href="#quality-checks"></a>
@@ -138,7 +138,7 @@
 <div class="section level2">
 <h2 id="acknowledgments">Acknowledgments<a class="anchor" aria-label="anchor" href="#acknowledgments"></a>
 </h2>
-<p>Our lightweight implementation was inspired and aided by the more comprehensive <a href="https://cran.r-project.org/package=RobinCar/" class="external-link">RobinCar</a> package, developed by Marlena Bannick, Ting Ye et al. We thank the <a href="https://carswg.github.io/" class="external-link">ASA-BIOP Covariate Adjustment Scientific Working Group</a> for valuable feedback and discussions.</p>
+<p>Our lightweight implementation was inspired and aided by the more comprehensive <a href="https://cran.r-project.org/package=RobinCar/" class="external-link">{RobinCar}</a> package, developed by Marlena Bannick, Ting Ye et al. We thank the <a href="https://carswg.github.io/" class="external-link">ASA-BIOP Covariate Adjustment Scientific Working Group</a> for valuable feedback and discussions.</p>
 <p>Further development of covariate adjustment software is by the <a href="https://carswg.github.io/subteam_software.html" class="external-link">Software Subteam</a> of ASA-BIOP Covariate Adjustment Scientific Working Group.</p>
 </div>
 <div class="section level2">
@@ -147,7 +147,7 @@
 <ul>
 <li><p>FDA. 2023. “Adjusting for Covariates in Randomized Clinical Trials for Drugs and Biological Products. Final Guidance for Industry.” <a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adjusting-covariates-randomized-clinical-trials-drugs-and-biological-products" class="external-link uri">https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adjusting-covariates-randomized-clinical-trials-drugs-and-biological-products</a></p></li>
 <li><p>Ge, Miaomiao, L Kathryn Durham, R Daniel Meyer, Wangang Xie, and Neal Thomas. 2011. “Covariate-Adjusted Difference in Proportions from Clinical Trials Using Logistic Regression and Weighted Risk Differences.” <em>Drug Information Journal: DIJ/Drug Information Association</em> 45: 481–93. <a href="https://link.springer.com/article/10.1177/009286151104500409" class="external-link uri">https://link.springer.com/article/10.1177/009286151104500409</a></p></li>
-<li><p>Magirr, Dominic, Mark Baillie, Craig Wang, and Alexander Przybylski. 2024. “Estimating the Variance of Covariate-Adjusted Estimators of Average Treatment Effects in Clinical Trials with Binary Endpoints.” OSF. May 16. osf.io/9mp58.</p></li>
+<li><p>Magirr, Dominic, Mark Baillie, Craig Wang, and Alexander Przybylski. 2024. “Estimating the Variance of Covariate-Adjusted Estimators of Average Treatment Effects in Clinical Trials with Binary Endpoints.” OSF. May 16. <a href="https://osf.io/9mp58" class="external-link uri">https://osf.io/9mp58</a>.</p></li>
 <li><p>Ye, Ting, Marlena Bannick, Yanyao Yi, and Jun Shao. 2023. “Robust Variance Estimation for Covariate-Adjusted Unconditional Treatment Effect in Randomized Clinical Trials with Binary Outcomes.” <em>Statistical Theory and Related Fields</em> 7 (2): 159–63. <a href="https://doi.org/10.1080/24754269.2023.2205802" class="external-link uri">https://doi.org/10.1080/24754269.2023.2205802</a></p></li>
 </ul>
 </div>
