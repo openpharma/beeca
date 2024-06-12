@@ -2,8 +2,8 @@
 
 <!-- badges: start -->
 
-[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable) 
-[![CRAN status](https://www.r-pkg.org/badges/version/beeca)](https://CRAN.R-project.org/package=beeca)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) 
+![CRAN status](https://www.r-pkg.org/badges/version/beeca)
 [![R-CMD-check](https://github.com/openpharma/beeca/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/openpharma/beeca/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -23,7 +23,7 @@ Motivated by the recent [FDA guidance (2023)](https://www.fda.gov/regulatory-inf
 
 ## Scope
 
-The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications of covariate adjustment in superiority vs non-inferiority trials, please see [Nicholas et al. (2015)](https://doi.org/10.1002%2Fsim.6447) and [Morris et al. (2022)](https://doi.org/10.1186/s13063-022-06097-z).
+The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications of covariate adjustment in superiority vs non-inferiority trials, please see [Nicholas et al. (2015)](https://doi.org/10.1002/sim.6447) and [Morris et al. (2022)](https://doi.org/10.1186/s13063-022-06097-z).
 
 ## Example
 
@@ -69,7 +69,7 @@ Further development of covariate adjustment software is by the [Software Subteam
 
 * FDA. 2023. "Adjusting for Covariates in Randomized Clinical Trials for Drugs and Biological Products. Final Guidance for Industry."  <https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adjusting-covariates-randomized-clinical-trials-drugs-and-biological-products>
 
-* Ge, Miaomiao, L Kathryn Durham, R Daniel Meyer, Wangang Xie, and Neal Thomas. 2011. "Covariate-Adjusted Difference in Proportions from Clinical Trials Using Logistic Regression and Weighted Risk Differences." *Drug Information Journal: DIJ/Drug Information Association* 45: 481--93. <https://link.springer.com/article/10.1177/009286151104500409>
+* Ge, Miaomiao, L Kathryn Durham, R Daniel Meyer, Wangang Xie, and Neal Thomas. 2011. "Covariate-Adjusted Difference in Proportions from Clinical Trials Using Logistic Regression and Weighted Risk Differences." *Drug Information Journal: DIJ/Drug Information Association* 45: 481--93. <https://doi.org/10.1177/009286151104500409>
 
 * Magirr, Dominic, Mark Baillie, Craig Wang, and Alexander Przybylski. 2024. “Estimating the Variance of Covariate-Adjusted Estimators of Average Treatment Effects in Clinical Trials with Binary Endpoints.” OSF. May 16. <https://osf.io/9mp58>.
 

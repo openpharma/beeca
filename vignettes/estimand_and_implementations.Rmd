@@ -245,12 +245,12 @@ if (requireNamespace("RobinCar", versionCheck = list(name = "RobinCar", op = "==
 
 
 * Arel-Bundock V (2023). _marginaleffects: Predictions, Comparisons, Slopes, Marginal Means, and Hypothesis Tests_. R package version 0.14.0,
-  <https://vincentarelbundock.github.io/marginaleffects/>.
+  <https://marginaleffects.com/>.
   
 * Bannick M, Ye T, Yi Y, Bian F (2024). _RobinCar: Robust Estimation and Inference in Covariate-Adaptive Randomization_. R package version 0.2.0,
   <https://CRAN.R-project.org/package=RobinCar>.
   
-* European Medicines Agency. 2020. "ICH E9 (R1) addendum on estimands and sensitivity analysis in clinical trials to the guideline on statistical principles for clinical trials." <https://www.ema.europa.eu/en/documents/scientific-guideline/ich-e9-r1-addendum-estimands-sensitivity-analysis-clinical-trials-guideline-statistical-principles_en.pdf>
+* European Medicines Agency. 2020. "ICH E9 (R1) addendum on estimands and sensitivity analysis in clinical trials to the guideline on statistical principles for clinical trials." <https://www.ema.europa.eu/en/documents/scientific-guideline/ich-e9-r1-addendum-estimands-and-sensitivity-analysis-clinical-trials-guideline-statistical-principles-clinical-trials-step-5_en.pdf>
 
 * FDA. 2023. "Adjusting for Covariates in Randomized Clinical Trials for Drugs and Biological Products. Final Guidance for Industry."  <https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adjusting-covariates-randomized-clinical-trials-drugs-and-biological-products>
 
