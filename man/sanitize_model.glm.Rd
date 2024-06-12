@@ -4,12 +4,14 @@
 \alias{sanitize_model.glm}
 \title{(internal) Sanitize a glm model}
 \usage{
-\method{sanitize_model}{glm}(model, trt)
+\method{sanitize_model}{glm}(model, trt, ...)
 }
 \arguments{
 \item{model}{a \link[stats]{glm} with binomial family canonical link.}
 
 \item{trt}{the name of the treatment variable on the right-hand side of the formula in a \link[stats]{glm}.}
+
+\item{...}{ignored.}
 }
 \value{
 if model is non-compliant will throw warnings or errors.

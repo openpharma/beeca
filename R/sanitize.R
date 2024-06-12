@@ -21,13 +21,15 @@ sanitize_model <- function(model, ...) {
 #' (internal) Sanitize a glm model
 #' @param model a \link[stats]{glm} with binomial family canonical link.
 #' @param trt the name of the treatment variable on the right-hand side of the formula in a \link[stats]{glm}.
+#' @param ... ignored.
 #' @return if model is non-compliant will throw warnings or errors.
 #' @importFrom stats model.frame model.matrix terms
+#' @export
 #' @examples \dontrun{
 #' fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = trial01)
 #' sanitize_model(fit1, "trtp")
 #' }
-sanitize_model.glm <- function(model, trt) {
+sanitize_model.glm <- function(model, trt, ...) {
   # sanitize variable
   sanitize_variable(model, trt)
 
@@ -84,7 +86,8 @@ sanitize_model.glm <- function(model, trt) {
   return(model)
 }
 
-sanitize_model.default <- function(model, trt) {
+#' @export
+sanitize_model.default <- function(model, trt, ...) {
   if (!inherits(model, "glm")) {
     msg <- c(sprintf('Model of class "%s" is not supported.', class(model)[1]))
     stop(msg, call. = FALSE)
