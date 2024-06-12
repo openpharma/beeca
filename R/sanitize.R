@@ -14,6 +14,7 @@
 #' \link[stats]{glm} with binomial family canonical link is supported.
 #' @param ... arguments passed to or from other methods.
 #' @return if model is non-compliant will throw warnings or errors.
+#' @keywords internal
 sanitize_model <- function(model, ...) {
   UseMethod("sanitize_model")
 }
@@ -24,6 +25,7 @@ sanitize_model <- function(model, ...) {
 #' @param ... ignored.
 #' @return if model is non-compliant will throw warnings or errors.
 #' @importFrom stats model.frame model.matrix terms
+#' @keywords internal
 #' @export
 #' @examples \dontrun{
 #' fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = trial01)
@@ -98,6 +100,7 @@ sanitize_model.default <- function(model, trt, ...) {
 #' @param model an \link[stats]{glm} model object.
 #' @param trt the name of the treatment variable on the right-hand side of the glm formula.
 #' @return if model and variable are non-compliant, will throw warnings or error.
+#' @keywords internal
 sanitize_variable <- function(model, trt) {
   data <- .get_data(model)
 

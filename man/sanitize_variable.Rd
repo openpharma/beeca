@@ -17,3 +17,4 @@ if model and variable are non-compliant, will throw warnings or error.
 \description{
 (internal) Sanitize function to check model and data
 }
+\keyword{internal}

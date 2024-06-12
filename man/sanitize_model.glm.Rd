@@ -25,3 +25,4 @@ fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = trial01)
 sanitize_model(fit1, "trtp")
 }
 }
+\keyword{internal}
