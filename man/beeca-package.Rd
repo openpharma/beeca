@@ -20,7 +20,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Mark Baillie \email{mark.baillie@novartis.com} (\href{https://orcid.org/000-0002-5618-0667}{ORCID})
+  \item Mark Baillie \email{mark.baillie@novartis.com} (\href{https://orcid.org/0000-0002-5618-0667}{ORCID})
   \item Craig Wang \email{craig.wang@novartis.com} (\href{https://orcid.org/0000-0003-1804-2463}{ORCID})
   \item Dominic Magirr \email{dominic.magirr@novartis.com}
 }

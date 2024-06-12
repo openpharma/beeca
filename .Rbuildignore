@@ -12,3 +12,4 @@ manifest.json
 ^libs$
 ^\.github$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$

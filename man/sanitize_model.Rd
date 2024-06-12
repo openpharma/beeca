@@ -24,3 +24,4 @@ and mode convergence.
 
 Currently it supports models with a binomial family and canonical logit link.
 }
+\keyword{internal}

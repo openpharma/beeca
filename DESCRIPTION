@@ -11,7 +11,7 @@ Authors@R:
            family = "Baillie", 
            email = "mark.baillie@novartis.com", 
            role = c("aut"), 
-           comment = c(ORCID = "000-0002-5618-0667")
+           comment = c(ORCID = "0000-0002-5618-0667")
            ),
     person(given = "Craig", 
            family = "Wang", 
