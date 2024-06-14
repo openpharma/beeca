@@ -1,6 +1,6 @@
 Package: beeca
 Title: Binary Endpoint Estimation with Covariate Adjustment
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: 
   c(person(given = "Alex", 
            family = "Przybylski", 
@@ -27,7 +27,7 @@ Authors@R:
 Description: A lightweight package to perform estimation of marginal treatment 
   effects for binary outcomes when using logistic regression working models with 
   covariate adjustment (see discussions in Magirr et al (2024) <https://osf.io/9mp58/>). Implements the variance estimators of 
-  Ge et al (2011) <doi:10.1177/0092861511045004092> and
+  Ge et al (2011) <doi:10.1177/009286151104500409> and
   Ye et al (2023) <doi:10.1080/24754269.2023.2205802>. 
 Maintainer: Alex Przybylski <alexander.przybylski@novartis.com>
 License: LGPL (>= 3)
