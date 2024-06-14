@@ -2,7 +2,7 @@
 
 This is a resubmission. In this version I have:
 
-* Corrected URLs and ORCID identifiers
+* Corrected URLs, DOIs, ORCID identifiers
 
 * Registered S3 methods
 
@@ -10,7 +10,7 @@ This is a resubmission. In this version I have:
 
 0 errors | 0 warnings | 1 note
 
-I am aware of one note: The suggested package 'margins' is no longer available on CRAN. 'margins' is only suggested as it can be used for testing and in a vignette example to demonstrate validation of 'beeca' outputs.
+I am aware of one possible note: The suggested package 'margins' was very recently reinstated to CRAN and binaries may not be available for certain platforms / R versions. At time of submission it is not available for Windows r-devel. 
 
 ```
 * checking package dependencies ... NOTE
