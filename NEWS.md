@@ -1,4 +1,4 @@
-# beeca 0.1.2
+# beeca 0.1.3
 
 - Preparation for CRAN submission
 
