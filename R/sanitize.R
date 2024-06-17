@@ -15,6 +15,7 @@
 #' @param ... arguments passed to or from other methods.
 #' @return if model is non-compliant will throw warnings or errors.
 #' @keywords internal
+#' @export
 sanitize_model <- function(model, ...) {
   UseMethod("sanitize_model")
 }
@@ -27,10 +28,11 @@ sanitize_model <- function(model, ...) {
 #' @importFrom stats model.frame model.matrix terms
 #' @keywords internal
 #' @export
-#' @examples \dontrun{
+#' @examples
+#' trial01$trtp <- factor(trial01$trtp)
 #' fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = trial01)
-#' sanitize_model(fit1, "trtp")
-#' }
+#' fit1 <- sanitize_model(fit1, "trtp")
+#'
 sanitize_model.glm <- function(model, trt, ...) {
   # sanitize variable
   sanitize_variable(model, trt)

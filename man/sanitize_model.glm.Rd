@@ -20,9 +20,9 @@ if model is non-compliant will throw warnings or errors.
 (internal) Sanitize a glm model
 }
 \examples{
-\dontrun{
+trial01$trtp <- factor(trial01$trtp)
 fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = trial01)
-sanitize_model(fit1, "trtp")
-}
+fit1 <- sanitize_model(fit1, "trtp")
+
 }
 \keyword{internal}
