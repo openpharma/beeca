@@ -3,7 +3,7 @@ pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   estimand_and_implementations: estimand_and_implementations.html
-last_built: 2024-06-19T06:50Z
+last_built: 2024-07-05T14:54Z
 urls:
   reference: https://openpharma.github.io/beeca/reference
   article: https://openpharma.github.io/beeca/articles
