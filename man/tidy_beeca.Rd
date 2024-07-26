@@ -15,6 +15,15 @@ tidy_beeca(x, conf.int = FALSE, conf.level = 0.95, ...)
 }
 \value{
 a tibble
+the default values returned are the following
+\tabular{ll}{
+term      \tab treatment variable \cr
+contrast  \tab the contrast used to estimate the marginal effect \cr
+estimate  \tab the average treatment effect \cr
+std.error \tab the standard error based on the Ge or Ye method \cr
+statistic \tab the z-score of the estimate divided by the standard error \cr
+p.value   \tab 2-sided p-value \cr
+}
 }
 \description{
 The broom package exports a tidier for \code{"glm"} objects.
