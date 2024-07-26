@@ -47,3 +47,18 @@ test_that("tidy_beeca returns correct values", {
   expect_equal(result$p.value, NA)
 })
 
+test_that("tidy_beeca returns correct values with confidence intervals", {
+  result <- tidy_beeca(fit, conf.int = TRUE)
+  expect_equal(result$term, "trtp")
+  expect_equal(result$estimate, fit$marginal_results$STATVAL[fit$marginal_results$STAT == "diff"])
+  expect_equal(result$std.error, fit$marginal_results$STATVAL[fit$marginal_results$STAT == "diff_se"])
+  expect_equal(result$statistic, NA)
+  expect_equal(result$p.value, NA)
+  conf.low <- result$estimate - qnorm(1 - 0.95 / 2) * result$std.error
+  conf.high <- result$estimate + qnorm(1 - 0.95 / 2) * result$std.error
+  expect_equal(result$conf.low, conf.low, tolerance = 1e-8)
+  expect_equal(result$conf.high, conf.high, tolerance = 1e-8)
+})
+
+
+
