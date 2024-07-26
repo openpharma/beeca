@@ -60,6 +60,10 @@
 #'  marginal_se                \tab Standard error estimate of the marginal treatment effect estimate. \cr
 #'  marginal_results           \tab Analysis results data (ARD) containing a summary of the analysis for subsequent reporting. \cr
 #' }
+#' Note, the returned object is also appended with a `beeca` object class. This enables additional
+#' functions to support extracting the marginal effect estimates from the object without
+#' interacting with generic functions associated with the glm object.
+#'
 #' @importFrom utils packageVersion
 #' @export
 #' @examples
@@ -113,6 +117,9 @@ get_marginal_effect <- function(object, trt, strata = NULL,
     dplyr::as_tibble()
 
   object$marginal_results <- marginal_results
+
+  # add class and return
+  class(object) <- c("beeca", "glm")
 
   return(object)
 }
