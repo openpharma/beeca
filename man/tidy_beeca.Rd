@@ -4,7 +4,7 @@
 \alias{tidy_beeca}
 \title{Tidy a beeca/glm object}
 \usage{
-tidy_beeca(x, conf.int = FALSE, conf.level = 0.95, ...)
+tidy_beeca(x, conf.int = FALSE, conf.level = 0.95)
 }
 \arguments{
 \item{x}{a 'glm' object created with \code{get_marginal_effect()}}
@@ -15,7 +15,7 @@ tidy_beeca(x, conf.int = FALSE, conf.level = 0.95, ...)
 }
 \value{
 a tibble
-the default values returned are the following
+The default values returned are the following
 \tabular{ll}{
 term      \tab treatment variable \cr
 contrast  \tab the contrast used to estimate the marginal effect \cr
@@ -23,14 +23,18 @@ estimate  \tab the average treatment effect \cr
 std.error \tab the standard error based on the Ge or Ye method \cr
 statistic \tab the z-score of the estimate divided by the standard error \cr
 p.value   \tab 2-sided p-value \cr
+conf.low  \tab lower bound of the confidence interval (if specified) \cr
+conf.high \tab upper bound of the confidence interval (if specified) \cr
 }
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}\cr
+}
+\details{
 The broom package exports a tidier for \code{"glm"} objects.
 This function adds on top of that and returns more information
 that is stored from g-computation.
-}
-\details{
+
 The function also utilizes additional information stored when the
 glm object is created with \code{get_marginal_effect()}.
 It's recommended to always use this function with \code{get_marginal_effect()}.

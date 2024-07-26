@@ -45,7 +45,7 @@
 #' broom::tidy(fit1, conf.int = TRUE)
 #' tidy_beeca(fit1, conf.int = TRUE)
 #'
-tidy_beeca <- function(x, conf.int = FALSE, conf.level = 0.95, ...) {
+tidy_beeca <- function(x, conf.int = FALSE, conf.level = 0.95) {
 
   results <- NULL
 
@@ -56,11 +56,16 @@ tidy_beeca <- function(x, conf.int = FALSE, conf.level = 0.95, ...) {
     stop("x must be a 'beeca' object")
   }
 
-  results <- broom::tidy(x)
-
-  ## Extract results
+  # extract results
   marginal_results <- x$marginal_results
 
+  # Validate that marginal_results has the necessary columns
+  required_cols <- c("TRTVAR", "STAT", "TRTVAL", "STATVAL")
+  if (!all(required_cols %in% names(marginal_results))) {
+    stop("marginal_results must contain the required columns: ", paste(required_cols, collapse = ", "))
+  }
+
+  # tidy inputs  ---------------------------------------------------------------
 
   # define a tidy tibble
   result <- tibble::tibble(
@@ -69,7 +74,7 @@ tidy_beeca <- function(x, conf.int = FALSE, conf.level = 0.95, ...) {
     estimate = marginal_results[marginal_results$STAT == "diff", "STATVAL"][[1]],
     std.error = marginal_results[marginal_results$STAT == "diff_se", "STATVAL"][[1]],
     statistic = estimate / std.error,        # z-score
-    p.value = 2 * (1 - pnorm(abs(statistic)))   # 2-sided p-value
+    p.value = 2 * (1 - stats::pnorm(abs(statistic)))   # 2-sided p-value
   )
 
   ## add confidence interval if specified
@@ -77,11 +82,13 @@ tidy_beeca <- function(x, conf.int = FALSE, conf.level = 0.95, ...) {
 
     result <- result |>
       dplyr::mutate(
-        conf.low = estimate - qnorm(1 - conf.level / 2) * std.error,
-        conf.high = estimate + qnorm(1 - conf.level / 2) * std.error
+        conf.low = estimate - stats::qnorm(1 - conf.level / 2) * std.error,
+        conf.high = estimate + stats::qnorm(1 - conf.level / 2) * std.error
       )
   }
 
   # return tidy tibble
   return(result)
 }
+
+

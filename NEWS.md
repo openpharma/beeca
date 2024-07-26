@@ -1,5 +1,7 @@
 # beeca 0.1.4
 
+- Add `tidy_beeca()` function
+
 # beeca 0.1.3
 
 - Preparation for CRAN submission
