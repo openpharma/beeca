@@ -1,5 +1,7 @@
 #' Tidy a beeca/glm object
 #'
+#' `r lifecycle::badge("experimental")`\cr
+#'
 #' The broom package exports a tidier for `"glm"` objects.
 #' This function adds on top of that and returns more information
 #' that is stored from g-computation.
