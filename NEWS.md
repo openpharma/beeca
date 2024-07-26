@@ -1,4 +1,4 @@
-# beeca 0.2.0
+# beeca (development version)
 
 # beeca 0.1.3
 
