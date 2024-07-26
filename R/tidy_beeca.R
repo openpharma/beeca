@@ -68,7 +68,7 @@ tidy_beeca <- function(x, conf.int = FALSE, conf.level = 0.95) {
   # tidy inputs  ---------------------------------------------------------------
 
   # define a tidy tibble
-  result <- tibble::tibble(
+  result <- dplyr::tibble(
     term = marginal_results$TRTVAR[1],
     contrast = marginal_results[marginal_results$STAT == "diff", "TRTVAL"][[1]],
     estimate = marginal_results[marginal_results$STAT == "diff", "STATVAL"][[1]],

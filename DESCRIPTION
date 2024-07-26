@@ -42,7 +42,8 @@ Suggests:
     marginaleffects,
     margins,
     RobinCar (== 0.3.0),
-    broom
+    broom,
+    tibble
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
@@ -51,8 +52,7 @@ Imports:
     dplyr,
     lifecycle,
     sandwich,
-    stats,
-    tibble
+    stats
 VignetteBuilder: knitr
 URL: https://openpharma.github.io/beeca/
 BugReports: https://github.com/openpharma/beeca/issues
