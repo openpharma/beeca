@@ -114,5 +114,8 @@ get_marginal_effect <- function(object, trt, strata = NULL,
 
   object$marginal_results <- marginal_results
 
+  # add class and return
+  class(object) <- c("beeca", "glm")
+
   return(object)
 }
