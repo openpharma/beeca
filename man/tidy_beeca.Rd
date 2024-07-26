@@ -40,7 +40,8 @@ glm object is created with \code{get_marginal_effect()}.
 It's recommended to always use this function with \code{get_marginal_effect()}.
 }
 \examples{
-# example use of tidy_beeca
+library(broom)
+
 # Set treatment to a factor
 trial01$trtp <- factor(trial01$trtp)
 
@@ -48,9 +49,10 @@ trial01$trtp <- factor(trial01$trtp)
 fit1 <- glm(aval ~ trtp + bl_cov, family="binomial", data=trial01) |>
   get_marginal_effect(trt="trtp", method="Ye", contrast="diff")
 
-# compare with broom tidy. one works on logistic model(working model)
-# tidy_beeca tidies the analyses from g-computation
+# compare with broom tidy. tidy(fit) works on logistic model(working model)
 broom::tidy(fit1)
+
+# tidy_beeca tidies the analyses from g-computation
 tidy_beeca(fit1)
 
 # with confidence intervals

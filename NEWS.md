@@ -1,6 +1,7 @@
 # beeca 0.1.4
 
 - Add `tidy_beeca()` function
+- Add Readme.Rmd as a Rmarkdown file + github action
 
 # beeca 0.1.3
 

@@ -13,3 +13,4 @@ manifest.json
 ^\.github$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^README\.Rmd$
