@@ -1,8 +1,8 @@
-#' Tidy a beeca object
+#' Tidy a beeca/glm object
 #'
 #' The broom package exports a tidier for `"glm"` objects.
 #' This function adds on top of that and returns more information
-#' that is stored from gcomputation.
+#' that is stored from g-computation.
 #'
 #' The function also utilizes additional information stored when the
 #' glm object is created with `get_marginal_effect()`.
