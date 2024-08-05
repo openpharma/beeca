@@ -13,16 +13,19 @@
 #'
 #' @export
 augment_beeca <- function(x) {
-  data <- .get_data(x)
 
-  data <- dplyr::as_tibble(data)
-  predictions <- dplyr::as_tibble(x$counterfactual.predictions)
-  data <- dplyr::bind_cols(data, predictions)
+  # Get the data and predictions and combine
+  model_data <- .get_data(x)
+  predictions <- x$counterfactual.predictions
+  data <- dplyr::bind_cols(model_data, predictions)
 
+  # merge with original data in case patients dropped due to missinginess
   original <- x$data
+  data <- original |>
+    dplyr::left_join(data) |>
+    dplyr::as_tibble()
 
-  data <- original |> dplyr::left_join(data)
-
+  # todo: mutate additional statistics for CI table - check text book
 
   return(data)
 }
