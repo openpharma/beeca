@@ -70,8 +70,6 @@ library(dplyr)
 ```{r}
 ## Prepare the dataset for input
 dat <- trial02_cdisc %>%
-  ## In this case we are only interested in comparing two arms: Placebo vs Xanomeline High Dose
-  dplyr::filter(TRTP %in% c("Placebo", "Xanomeline High Dose")) %>%
   ## Treatment variable must be coded as a factor
   dplyr::mutate(TRTP = factor(TRTP))
 
@@ -113,8 +111,12 @@ ci_u <- diff_est + (qnorm(0.975) * diff_se)
 z_score <- diff_est / diff_se
 p_value <- 2 * (1 - pnorm(abs(z_score)))
 
-sprintf("The risk difference is %s with 95%% CI: (%s - %s)", round(diff_est, 2), round(ci_l, 2), round(ci_u, 2))
-sprintf("p-value: %s", formatC(p_value, format = "e", digits = 2))
+tibble(
+  Contrast = marginal_results[marginal_results$STAT == "diff", ]$TRTVAL,
+  `Risk difference` = round(diff_est, 2),
+  `95% CI` = sprintf("(%s - %s)", round(ci_l, 2), round(ci_u, 2)),
+  `p-value` = formatC(p_value, format = "e", digits = 2)
+)
 ```
 
 ## Comparing different implementations

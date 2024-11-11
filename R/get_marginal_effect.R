@@ -81,38 +81,46 @@ get_marginal_effect <- function(object, trt, strata = NULL,
     apply_contrast(contrast, reference)
 
   data <- .get_data(object)
-
-  trt_ref <- attr(object$marginal_est, "reference")
-  trt_inv <- levels(data[[trt]])[-which(levels(data[[trt]]) == trt_ref)]
+  n_trt_levels <- nlevels(data[[trt]])
   outcome <- paste(object$formula[[2]])
 
-  marginal_results <- data.frame(
-    TRTVAR = c(rep(trt, 12)),
-    TRTVAL = c(
-      rep(trt_inv, 5), rep(trt_ref, 5),
-      rep(attributes(object$marginal_est)[["contrast"]], 2)
+  # Marginal results for each trt level
+  marginal_responses <- data.frame(
+    TRTVAR = rep(trt, 5*n_trt_levels),
+    TRTVAL = rep(levels(data[[trt]]), each=5),
+    PARAM = rep(outcome, 5),
+    ANALTYP1 = rep(c(rep("DESCRIPTIVE", 3), rep("INFERENTIAL", 2)), n_trt_levels),
+    STAT = rep(c("N", "n", "%", "risk", "risk_se"), n_trt_levels),
+    STATVAL = c(sapply(levels(data[[trt]]), \(x) {
+      c(
+        sum(data[trt] == x),
+        sum(data[outcome][data[trt] == x] == "1"),
+        sum(data[outcome][data[trt] == x] == "1") / sum(data[trt] == x) * 100,
+        object$counterfactual.means[x],
+        sqrt(object$robust_varcov[x, x])
+      )
+    })
     ),
-    PARAM = rep(outcome, 12),
-    ANALTYP1 = c(rep(c(rep("DESCRIPTIVE", 3), rep("INFERENTIAL", 2)), 2), rep("INFERENTIAL", 2)),
-    STAT = c("N", "n", "%", "risk", "risk_se", "N", "n", "%", "risk", "risk_se", contrast, paste0(contrast, "_se")),
-    STATVAL = c(
-      sum(data[trt] == trt_inv), sum(data[outcome][data[trt] == trt_inv] == "1"),
-      sum(data[outcome][data[trt] == trt_inv] == "1") / sum(data[trt] == trt_inv) * 100,
-      object$counterfactual.means[trt_inv], sqrt(object$robust_varcov[trt_inv, trt_inv]),
-      sum(data[trt] == trt_ref), sum(data[outcome][data[trt] == trt_ref] == "1"),
-      sum(data[outcome][data[trt] == trt_ref] == "1") / sum(data[trt] == trt_ref) * 100,
-      object$counterfactual.means[trt_ref], sqrt(object$robust_varcov[trt_ref, trt_ref]),
-      object$marginal_est, object$marginal_se
-    ),
-    ANALMETH = c(
-      rep(c("count", "count", "percentage", "g-computation", attributes(object$marginal_se)[["type"]]), 2),
-      "g-computation", attributes(object$marginal_se)[["type"]]
-    ),
-    ANALDESC = paste0("Computed using beeca@", packageVersion("beeca"))
-  ) |>
-    dplyr::as_tibble()
+    ANALMETH = rep(c("count", "count", "percentage", "g-computation",
+                     attributes(object$marginal_se)[["type"]]), n_trt_levels)
+  )
 
-  object$marginal_results <- marginal_results
+  # Contrast results
+  n_contrasts <- length(object$marginal_est)
+
+  marginal_contrasts <- data.frame(TRTVAR = rep(trt, 2*n_contrasts),
+                                   TRTVAL = c(rbind(attributes(object$marginal_est)[["contrast"]],
+                                                    attributes(object$marginal_se)[["contrast"]])),
+                                   PARAM = rep(outcome, 2*n_contrasts),
+                                   ANALTYP1 = c(rep("INFERENTIAL", 2*n_contrasts)),
+                                   STAT = rep(c(contrast, paste0(contrast, "_se")), n_contrasts),
+                                   STATVAL = c(rbind(object$marginal_est, object$marginal_se)),
+                                   ANALMETH = rep(c("g-computation", attributes(object$marginal_se)[["type"]]), n_contrasts)
+  )
+
+  object$marginal_results <- rbind(marginal_responses,
+                                   marginal_contrasts) |> dplyr::as_tibble()
+  object$marginal_results$ANALDESC <- paste0("Computed using beeca@", packageVersion("beeca"))
 
   return(object)
 }

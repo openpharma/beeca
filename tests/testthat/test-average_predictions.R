@@ -12,8 +12,8 @@ test_that("averaging counterfactual predictions works", {
   fit1 <- average_predictions(fit1)
 
   expected_output <- c(
-    "0" = mean(fit1$counterfactual.predictions$cf_pred_0),
-    "1" = mean(fit1$counterfactual.predictions$cf_pred_1)
+    "0" = mean(fit1$counterfactual.predictions[["0"]]),
+    "1" = mean(fit1$counterfactual.predictions[["1"]])
   )
 
   expect_equal(fit1$counterfactual.means, expected_output)

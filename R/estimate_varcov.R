@@ -98,7 +98,7 @@
 estimate_varcov <- function(object, strata = NULL, method = c("Ge", "Ye"),
                             type = c("HC0", "model-based", "HC3", "HC", "HC1", "HC2", "HC4", "HC4m", "HC5"),
                             mod = FALSE) {
-  # assert means are available in object
+  # Assert means are available in object
   if (!"counterfactual.means" %in% names(object)) {
     msg <- sprintf(
       "Missing counterfactual means. First run `%1$s <- average_predictions(%1$s)`.",
@@ -115,14 +115,18 @@ estimate_varcov <- function(object, strata = NULL, method = c("Ge", "Ye"),
     varcov <- varcov_ye(object, trt, strata, mod)
   } else if (method == "Ge") {
     type <- match.arg(type)
-    # throw warning is strata supplied but method == "Ge" is specified
+    # Throw warning is strata supplied but method == "Ge" is specified
     if (!is.null(strata)) {
       warning("Strata is supplied but will be ignored when using method='Ge'", call. = FALSE)
     }
     varcov <- varcov_ge(object, trt, type)
   }
 
-  rownames(varcov) <- colnames(varcov) <- levels(.get_data(object)[[trt]])
+  # Assert varcov is symmetric
+  if (isFALSE(all.equal(varcov[lower.tri(varcov)], varcov[upper.tri(varcov)]))) {
+    stop("Error in calculation of variance covariance matrix: `varcov` is not symmetric.",
+         call. = FALSE)
+  }
 
   object$robust_varcov <- varcov
   attr(object$robust_varcov, "type") <- ifelse(method == "Ge", paste0(method, " - ", type), method)
@@ -133,58 +137,86 @@ estimate_varcov <- function(object, strata = NULL, method = c("Ge", "Ye"),
 
 ## Re-implementation based on Ye et al. (https://doi.org/10.1080/24754269.2023.2205802)
 varcov_ye <- function(object, trt, strata, mod) {
-  ## calculate quantities
-  # get data
+
   data <- .get_data(object)
 
-  # counterfactual predictions
-  cf_pred <- object$counterfactual.predictions
-
-  pred_0 <- cf_pred$cf_pred_0
-  pred_1 <- cf_pred$cf_pred_1
-
-  ## Extract allocation information
-  pi_0 <- mean(data[, trt] == levels(data[[trt]])[1])
-  pi_1 <- 1 - pi_0
+  # Extract allocation information
+  pi_all <- prop.table(table(data[, trt]))
   n <- length(data[, trt])
 
-  ## Extract responses on observed arm i and arm j
-  y_0 <- object$y[data[, trt] == levels(data[[trt]])[1]]
-  y_1 <- object$y[data[, trt] == levels(data[[trt]])[2]]
+  # Extract observed responses
+  y_observed <- lapply(levels(data[[trt]]), \(x) object$y[data[, trt] == x])
+  names(y_observed) <- levels(data[[trt]])
 
-  ## Predictions on arm i from patients in arm i only
-  pred_0_0 <- pred_0[data[, trt] == levels(data[[trt]])[1]]
-  pred_1_1 <- pred_1[data[, trt] == levels(data[[trt]])[2]]
+  # Extract counterfactual predictions
+  cf_pred <- object$counterfactual.predictions
+  # Append actual treatment assignment to cf predictions
+  cf_pred[[trt]] <- data[,trt]
 
-  ## Predictions on arm i from patients in arm j only
-  pred_0_1 <- pred_0[data[, trt] == levels(data[[trt]])[2]]
-  pred_1_0 <- pred_1[data[, trt] == levels(data[[trt]])[1]]
+  # Estimate varcov using Ye et al (2022)
 
-  ## estimate varcov using Ye et al (2022)
+  # diag_vars stores variances per treatment arm
+  diag_vars <- list()
   if (mod) {
-    v_0_0 <- var(y_0 - pred_0_0) / pi_0 + 2 * cov(y_0, pred_0_0) - var(pred_0)
-    v_1_1 <- var(y_1 - pred_1_1) / pi_1 + 2 * cov(y_1, pred_1_1) - var(pred_1)
-  } else {
-    # use variance decomposition to match RobinCar implementation
-    var_y0_pred00 <- var(y_0) - 2 * cov(y_0, pred_0_0) + var(pred_0)
-    var_y1_pred11 <- var(y_1) - 2 * cov(y_1, pred_1_1) + var(pred_1)
 
-    v_0_0 <- var_y0_pred00 / pi_0 + 2 * cov(y_0, pred_0_0) - var(pred_0)
-    v_1_1 <- var_y1_pred11 / pi_1 + 2 * cov(y_1, pred_1_1) - var(pred_1)
+    for (trtlvl in levels(data[[trt]])) {
+      var_resid <- var(y_observed[[trtlvl]] - cf_pred[cf_pred[[trt]] == trtlvl, trtlvl])
+      cov_obs_pred <- cov(y_observed[[trtlvl]], cf_pred[cf_pred[[trt]] == trtlvl, trtlvl])
+      var_pred <- var(cf_pred[, trtlvl])
+
+      diag_vars[[trtlvl]] <- var_resid / pi_all[[trtlvl]] + 2 * cov_obs_pred - var_pred
+
+    }
+
+  } else {
+    # Use variance decomposition to match RobinCar implementation
+
+    for (trtlvl in levels(data[[trt]])) {
+      var_obs <- var(y_observed[[trtlvl]])
+      cov_obs_pred <- cov(y_observed[[trtlvl]], cf_pred[cf_pred[[trt]] == trtlvl, trtlvl])
+      var_pred <- var(cf_pred[, trtlvl])
+
+      var_obs_pred <- var_obs - 2 * cov_obs_pred + var_pred
+
+      diag_vars[[trtlvl]] <- var_obs_pred / pi_all[[trtlvl]] + 2 * cov_obs_pred - var_pred
+
+    }
+
   }
 
-  v_0_1 <- v_1_0 <- cov(y_0, pred_1_0) + cov(y_1, pred_0_1) - cov(pred_0, pred_1)
+  # tri_vars stores trt arm covariances
+  tri_vars <- list()
+  for (trtlvl in levels(data[[trt]])) {
 
-  ## Variance of theta_i = p_i(Y=1) on arm i = 0,1
-  varcov <- matrix(c(
-    v_0_0, v_0_1,
-    v_1_0, v_1_1
-  ), nrow = 2, ncol = 2)
+    # Covar of observed arm i and corresponding counterfactual predictions for those on arm j
+    cov_obsi_predj <- sapply(levels(data[[trt]])[levels(data[[trt]]) != trtlvl],
+                             \(x) cov(y_observed[[trtlvl]], cf_pred[cf_pred[[trt]] == trtlvl, x]))
 
-  ## Variance adjustment based on stratified CAR scheme, formula 18: https://doi.org/10.1080/01621459.2022.2049278
+    # Covar of observed arm j and corresponding counterfactual predictions for those on arm i
+    cov_obsj_predi <- sapply(levels(data[[trt]])[levels(data[[trt]]) != trtlvl],
+                             \(x) cov(y_observed[[x]], cf_pred[cf_pred[[trt]] == x, trtlvl]))
+
+    # Covar of counterfactual predictions for arm i and arm j for all subjects
+    cov_predi_predj <- sapply(levels(data[[trt]])[levels(data[[trt]]) != trtlvl],
+                              \(x) cov(cf_pred[, trtlvl], cf_pred[, x]))
+
+    tri_vars[[trtlvl]] <- cov_obsi_predj + cov_obsj_predi - cov_predi_predj
+
+  }
+
+  # Construct variance covariance matrix
+  varcov <- matrix(nrow = nlevels(data[[trt]]),
+                   ncol = nlevels(data[[trt]]))
+  rownames(varcov) <- colnames(varcov) <- levels(data[[trt]])
+
+  for (trtlvl in rownames(varcov)) {
+    varcov[trtlvl, c(trtlvl, names(tri_vars[[trtlvl]]))] <- c(diag_vars[[trtlvl]], tri_vars[[trtlvl]])
+  }
+
+  # Variance adjustment based on stratified CAR scheme, formula 18: https://doi.org/10.1080/01621459.2022.2049278
   if (!is.null(strata)) {
 
-    # warn if any single stratification variable has suspiciously many unique values
+    # Warn if any single stratification variable has suspiciously many unique values
     n.strata <- sapply(strata, function(x) length(unique(.get_data(object)[[x]])))
     if (any(n.strata > 3)) {
       msg <- sprintf(
@@ -201,10 +233,10 @@ varcov_ye <- function(object, trt, strata, mod) {
 }
 
 ye_strata_adjustment <- function(object, trt, strata) {
-  # get data
+
   data <- .get_data(object)
 
-  # assert strata is a column name found in model data
+  # Assert strata is a column name found in model data
   if (!all(strata %in% colnames(data))) {
     msg <- sprintf('Stratification variable(s) "%s" must be found in the model', paste(strata[!strata %in% colnames(data)], collapse = ", "))
     stop(msg, call. = FALSE)
@@ -213,27 +245,28 @@ ye_strata_adjustment <- function(object, trt, strata) {
   strata_all <- Reduce(function(...) paste(..., sep = "-"), data[strata])
   data <- cbind(data, strata_all)
 
-  pi_0 <- mean(data[, trt] == levels(data[[trt]])[1])
-  pi_1 <- 1 - pi_0
+  # Extract allocation information
+  pi_all <- prop.table(table(data[,trt]))
+  # Get predictions for observed data and calculate residuals
   data$preds <- predict(object, type = "response")
   data$resid <- object$y - data$preds
 
   get_rb <- function(z) {
-    # assume always two treatment levels
-    resid_0_z <- data$resid[(data[, trt] == levels(data[[trt]])[1]) & (data$strata_all == z)]
-    resid_1_z <- data$resid[(data[, trt] == levels(data[[trt]])[2]) & (data$strata_all == z)]
-    rb_0 <- (1 / pi_0) * mean(resid_0_z)
-    rb_1 <- (1 / pi_1) * mean(resid_1_z)
-    return(diag(c(rb_0, rb_1)))
+    rb_list <- list()
+    for (trtlvl in levels(data[[trt]])) {
+      resid_i_z <- data$resid[(data[[trt]] == trtlvl) & (data$strata_all == z)]
+      rb_list[[trtlvl]] <- (1 / pi_all[[trtlvl]]) * mean(resid_i_z)
+    }
+    return(diag(rb_list))
   }
 
+  omega_sr <- diag(pi_all) - pi_all %*% t(pi_all)
+
+  # Always assume permuted block stratified randomization
+  omega_z <- matrix(0, nrow = nlevels(data[[trt]]), ncol = nlevels(data[[trt]]))
+
+  # Compute outer expectation
   strata_levels <- levels(as.factor(data$strata_all))
-
-  omega_sr <- diag(c(pi_0, pi_1)) - c(pi_0, pi_1) %*% t(c(pi_0, pi_1))
-  # always assume permuted block stratified randomization
-  omega_z <- matrix(0, nrow = length(unique((data[[trt]]))), ncol = length(unique((data[[trt]]))))
-
-  # compute outer expectation
   erb_s <- lapply(strata_levels, function(x) {
     erb_i <- get_rb(x) %*% (omega_sr - omega_z) %*% get_rb(x)
     erb_i * (sum(data$strata_all == x) / nrow(data))
@@ -258,36 +291,25 @@ varcov_ge <- function(object, trt, type) {
     V <- sandwich::vcovHC(object, type = type)
   }
 
-  # counterfactual predictions
+  # Counterfactual predictions
   cf_pred <- object$counterfactual.predictions
 
-  pred_0 <- cf_pred$cf_pred_0
-  pred_1 <- cf_pred$cf_pred_1
+  # Get derivatives per treatment level counterfactual outcomes
+  d_list <- list()
+  for (trtlvl in levels(data[[trt]])) {
+    X_i <- data
+    X_i[, trt] <- factor(trtlvl, levels = levels(data[[trt]]))
+    X_i <- model.matrix(object$formula, X_i)
 
-  # get order of treatment column and assign counterfactual treatments
-  X0 <- X1 <- data
-  X0[, trt] <- factor(levels(data[[trt]])[1], levels = levels(data[[trt]]))
-  X1[, trt] <- factor(levels(data[[trt]])[2], levels = levels(data[[trt]]))
-  X0 <- model.matrix(object$formula, X0)
-  X1 <- model.matrix(object$formula, X1)
-  # compute derivatives
-  pderiv0 <- pred_0 * (1 - pred_0)
-  pderiv1 <- pred_1 * (1 - pred_1)
-  d0 <- (t(pderiv0) %*% as.matrix(X0)) / nrow(X0)
-  d1 <- (t(pderiv1) %*% as.matrix(X1)) / nrow(X1)
+    # Compute derivative
+    pderiv_i <- cf_pred[, trtlvl] * (1 - cf_pred[, trtlvl])
+    d_i <- (t(pderiv_i) %*% as.matrix(X_i)) / nrow(X_i)
+    d_list[[trtlvl]] <- d_i
+  }
 
-  # variance components aligned with varcov_ye implementation
-  v_0_0 <- d0 %*% V %*% t(d0)
-  v_1_1 <- d1 %*% V %*% t(d1)
-  v_0_1 <- d0 %*% V %*% t(d1)
-  v_1_0 <- d1 %*% V %*% t(d0)
+  all_d <- do.call(rbind, d_list)
+  varcov_ge <- all_d %*% V %*% t(all_d)
+  rownames(varcov_ge) <- colnames(varcov_ge) <- levels(data[[trt]])
 
-  varcov_ge <- matrix(
-    c(
-      v_0_0, v_0_1,
-      v_1_0, v_1_1
-    ),
-    nrow = 2, ncol = 2
-  )
   return(varcov_ge)
 }
