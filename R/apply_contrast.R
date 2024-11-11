@@ -69,6 +69,7 @@
 #' fit3$marginal_est
 #' fit3$marginal_se
 #'
+#' @importFrom utils combn
 #' @export
 #'
 apply_contrast <- function(object, contrast = c("diff", "rr", "or", "logrr", "logor"), reference) {
