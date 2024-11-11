@@ -235,7 +235,7 @@ cat("Point estimate", beeca_ye$marginal_est, "\nStandard error estimate", beeca_
 **Version 1**: from `RobinCar` package 
 
 ```{r}
-if (requireNamespace("RobinCar", versionCheck = list(name = "RobinCar", op = "==", version = "0.3.0"), quietly = T)) {
+if (requireNamespace("RobinCar", quietly = T)) {
   robincar_ye <- RobinCar::robincar_glm(data.frame(fit$data), response_col = as.character(fit$formula[2]),
       treat_col = "trtp", formula = fit$formula, g_family = fit$family,
       contrast_h = "diff")$contrast$result

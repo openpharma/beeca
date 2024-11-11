@@ -68,7 +68,7 @@ V1 <- estimate_varcov(fit1, method = "Ye")$robust_varcov
 V1_3arm <- estimate_varcov(fit_3arm, method = "Ye")$robust_varcov
 
 # if RobinCar is available
-robincar_available <- requireNamespace("RobinCar", versionCheck = list(name = "RobinCar", op = "==", version = "0.3.0"), quietly = T)
+robincar_available <- requireNamespace("RobinCar", quietly = T)
 
 if (robincar_available){
   test_that("Correct variance calculation for Ye's method matching RobinCar", {

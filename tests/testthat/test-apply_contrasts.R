@@ -409,7 +409,7 @@ test_that("Reference levels correctly handled when >2 treatment levels", {
 
 
 # if RobinCar is available compare contrast results
-robincar_available <- requireNamespace("RobinCar", versionCheck = list(name = "RobinCar", op = "==", version = "0.3.0"), quietly = T)
+robincar_available <- requireNamespace("RobinCar", quietly = T)
 
 if (robincar_available){
 
