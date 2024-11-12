@@ -1,6 +1,6 @@
 Package: beeca
 Title: Binary Endpoint Estimation with Covariate Adjustment
-Version: 0.1.3.9000
+Version: 0.2.0
 Authors@R: 
   c(person(given = "Alex", 
            family = "Przybylski", 

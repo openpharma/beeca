@@ -12,6 +12,7 @@ Performs estimation of marginal treatment effects for binary outcomes when using
 Useful links:
 \itemize{
   \item \url{https://openpharma.github.io/beeca/}
+  \item Report bugs at \url{https://github.com/openpharma/beeca/issues}
 }
 
 }
