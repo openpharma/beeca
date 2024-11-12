@@ -18,10 +18,9 @@ in fitting the \code{object}.}
 an updated \code{glm} object appended with an
 additional component \code{counterfactual.predictions}.
 
-This component contains a tibble with two columns: \code{cf_pred_0} and \code{cf_pred_1},
-representing counterfactual predictions for each level of the
-treatment variable. A descriptive \code{label} attribute explains the counterfactual
-scenario associated with each column.
+This component contains a tibble with columns representing counterfactual
+predictions for each level of the treatment variable. A descriptive \code{label}
+attribute explains the counterfactual scenario associated with each column.
 }
 \description{
 This function calculates counterfactual predictions for each level of a
@@ -30,9 +29,9 @@ It is designed to aid in the assessment of treatment effects by predicting
 outcomes under different treatments under causal inference framework.
 }
 \details{
-The function works by creating two new datasets from the original data used
-to fit the GLM model. In these datasets, the treatment variable
-is set to each of its levels across all records (e.g., patients).
+The function works by creating new datasets from the original data used
+to fit the GLM model. In these datasets, the treatment variable for all
+records (e.g., patients) is set to each possible treatment level.
 
 Predictions are then made for each dataset based on the fitted GLM model,
 simulating the response variable under each treatment condition.

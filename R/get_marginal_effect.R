@@ -35,10 +35,11 @@
 #'
 #' @param contrast a string indicating choice of contrast. Defaults to 'diff' for a risk difference. See \link[beeca]{apply_contrast}.
 #'
-#' @param reference a string indicating which treatment group should be considered as
-#' the reference level. Accepted values are one of the levels in the treatment
-#' variable. Default to the first level used in the `glm` object. This parameter influences the calculation of treatment effects
-#' relative to the chosen reference group.
+#' @param reference a string or list of strings indicating which treatment
+#' group(s) to use as reference level for pairwise comparisons. Accepted values
+#' must be a subset of the levels in the treatment variable. Default to the
+#' first n-1 treatment levels used in the `glm` object. This parameter influences
+#' the calculation of treatment effects relative to the chosen reference group.
 #'
 #' @param mod for Ye's method, the implementation of open-source RobinCar package
 #' has an additional variance decomposition step when estimating the robust variance,
