@@ -24,7 +24,7 @@ Motivated by the recent [FDA guidance (2023)](https://www.fda.gov/regulatory-inf
 
 ## Scope
 
-The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for 2-arm clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications of covariate adjustment in superiority vs non-inferiority trials, please see [Nicholas et al. (2015)](https://doi.org/10.1002/sim.6447) and [Morris et al. (2022)](https://doi.org/10.1186/s13063-022-06097-z).
+The package is designed to estimate marginal (unconditional) estimands in a binary endpoint setting with covariate adjustment. It is suited for clinical trials with or without covariate adaptive (stratified permuted block or biased coin) randomization where the summary measure of the marginal estimand is one of (risk difference, odds ratio, risk ratio, log odds ratio, log risk ratio). For practical considerations on the implications of covariate adjustment in superiority vs non-inferiority trials, please see [Nicholas et al. (2015)](https://doi.org/10.1002/sim.6447) and [Morris et al. (2022)](https://doi.org/10.1186/s13063-022-06097-z).
 
 ## Example
 

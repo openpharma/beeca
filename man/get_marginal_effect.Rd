@@ -40,10 +40,11 @@ model-based, HC3, HC, HC1, HC2, HC4, HC4m, and HC5. See \link[sandwich]{vcovHC} 
 
 \item{contrast}{a string indicating choice of contrast. Defaults to 'diff' for a risk difference. See \link[beeca]{apply_contrast}.}
 
-\item{reference}{a string indicating which treatment group should be considered as
-the reference level. Accepted values are one of the levels in the treatment
-variable. Default to the first level used in the \code{glm} object. This parameter influences the calculation of treatment effects
-relative to the chosen reference group.}
+\item{reference}{a string or list of strings indicating which treatment
+group(s) to use as reference level for pairwise comparisons. Accepted values
+must be a subset of the levels in the treatment variable. Default to the
+first n-1 treatment levels used in the \code{glm} object. This parameter influences
+the calculation of treatment effects relative to the chosen reference group.}
 
 \item{mod}{for Ye's method, the implementation of open-source RobinCar package
 has an additional variance decomposition step when estimating the robust variance,

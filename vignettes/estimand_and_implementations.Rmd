@@ -56,11 +56,10 @@ See [Magirr et al. (2024)](https://osf.io/9mp58/) for discussion of the estimand
 
 ## Analysis example
 
-In the following example, we will use an example CDISC clinical trial dataset in ADaM format (`?trial02_cdisc`).
-We will only include the two treatment arms of interest for the analysis: "Xanomeline High Dose" and "Placebo".
-Below we show how to describe and perform an adjusted analysis targeting marginal risk difference between the two arms.  
+In the following example, we will use an example CDISC clinical trial dataset in ADaM format (`?trial02_cdisc`) with three treatment arms.
+Below we show how to describe and perform an adjusted analysis targeting marginal risk difference comparing the two active arms against placebo.  
 
-A logistic regression model will be used to estimate the average treatment effect between Xanomeline High Dose and Placebo. The model will adjust for baseline values of patient sex, race and age. Difference in marginal response proportions with p-value and corresponding 95% confidence interval will be estimated from the logistic regression model using the methodology described in Ge et al. 2011 with sandwich variance estimator (Liu et al. 2023). The sandwich estimator provides robustness to model-misspecification.
+A logistic regression model will be used to estimate the average treatment effect for Xanomeline High Dose vs Placebo and Xanomeline Low Dose vs Placebo. The model will adjust for baseline values of patient sex, race and age. Difference in marginal response proportions with p-value and corresponding 95% confidence interval will be estimated from the logistic regression model using the methodology described in Ge et al. 2011 with sandwich variance estimator (Liu et al. 2023). The sandwich estimator provides robustness to model-misspecification.
 
 ```{r, message=FALSE, warning=FALSE}
 library(beeca)
