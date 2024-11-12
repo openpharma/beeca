@@ -74,16 +74,15 @@ in fitting the <code>object</code>.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>an updated <code>glm</code> object appended with an
 additional component <code>counterfactual.predictions</code>.</p>
-<p>This component contains a tibble with two columns: <code>cf_pred_0</code> and <code>cf_pred_1</code>,
-representing counterfactual predictions for each level of the
-treatment variable. A descriptive <code>label</code> attribute explains the counterfactual
-scenario associated with each column.</p>
+<p>This component contains a tibble with columns representing counterfactual
+predictions for each level of the treatment variable. A descriptive <code>label</code>
+attribute explains the counterfactual scenario associated with each column.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The function works by creating two new datasets from the original data used
-to fit the GLM model. In these datasets, the treatment variable
-is set to each of its levels across all records (e.g., patients).</p>
+    <p>The function works by creating new datasets from the original data used
+to fit the GLM model. In these datasets, the treatment variable for all
+records (e.g., patients) is set to each possible treatment level.</p>
 <p>Predictions are then made for each dataset based on the fitted GLM model,
 simulating the response variable under each treatment condition.</p>
 <p>The results are stored in a tidy format and appended to the original model

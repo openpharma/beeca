@@ -99,10 +99,11 @@ model-based, HC3, HC, HC1, HC2, HC4, HC4m, and HC5. See <a href="https://sandwic
 
 
 <dt id="arg-reference">reference<a class="anchor" aria-label="anchor" href="#arg-reference"></a></dt>
-<dd><p>a string indicating which treatment group should be considered as
-the reference level. Accepted values are one of the levels in the treatment
-variable. Default to the first level used in the <code>glm</code> object. This parameter influences the calculation of treatment effects
-relative to the chosen reference group.</p></dd>
+<dd><p>a string or list of strings indicating which treatment
+group(s) to use as reference level for pairwise comparisons. Accepted values
+must be a subset of the levels in the treatment variable. Default to the
+first n-1 treatment levels used in the <code>glm</code> object. This parameter influences
+the calculation of treatment effects relative to the chosen reference group.</p></dd>
 
 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>

@@ -223,19 +223,18 @@ and the corresponding methodology for variance estimation.</p>
 <h2 id="analysis-example">Analysis example<a class="anchor" aria-label="anchor" href="#analysis-example"></a>
 </h2>
 <p>In the following example, we will use an example CDISC clinical trial
-dataset in ADaM format (<code><a href="../reference/trial02_cdisc.html">?trial02_cdisc</a></code>). We will only
-include the two treatment arms of interest for the analysis: “Xanomeline
-High Dose” and “Placebo”. Below we show how to describe and perform an
-adjusted analysis targeting marginal risk difference between the two
-arms.</p>
+dataset in ADaM format (<code><a href="../reference/trial02_cdisc.html">?trial02_cdisc</a></code>) with three
+treatment arms. Below we show how to describe and perform an adjusted
+analysis targeting marginal risk difference comparing the two active
+arms against placebo.</p>
 <p>A logistic regression model will be used to estimate the average
-treatment effect between Xanomeline High Dose and Placebo. The model
-will adjust for baseline values of patient sex, race and age. Difference
-in marginal response proportions with p-value and corresponding 95%
-confidence interval will be estimated from the logistic regression model
-using the methodology described in Ge et al. 2011 with sandwich variance
-estimator (Liu et al. 2023). The sandwich estimator provides robustness
-to model-misspecification.</p>
+treatment effect for Xanomeline High Dose vs Placebo and Xanomeline Low
+Dose vs Placebo. The model will adjust for baseline values of patient
+sex, race and age. Difference in marginal response proportions with
+p-value and corresponding 95% confidence interval will be estimated from
+the logistic regression model using the methodology described in Ge et
+al. 2011 with sandwich variance estimator (Liu et al. 2023). The
+sandwich estimator provides robustness to model-misspecification.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://openpharma.github.io/beeca/">beeca</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
