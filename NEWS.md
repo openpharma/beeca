@@ -1,4 +1,6 @@
-# beeca (development version)
+# beeca 0.2.0
+
+- Extensions to allow for more than two treatment arms in the model fit.
 
 # beeca 0.1.3
 

@@ -24,7 +24,6 @@ trial02_cdisc <- safetyData::adam_adtte |>
       TRTP == "Xanomeline High Dose" ~ 3
     )
   ) |>
-  dplyr::filter(TRTPN != 2) |> # restrict to 2 arms in the data
   dplyr::select(
     USUBJID, PARAM, AGE, AGEGR1, AGEGR1N, RACE, RACEN, SEX,
     TRTP, TRTPN, AVAL, AVALC, FASFL

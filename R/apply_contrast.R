@@ -27,9 +27,10 @@
 #' The choice of contrast affects how treatment effects are calculated and
 #' interpreted. Default is `diff`.
 #'
-#' @param reference a string indicating which treatment group should be considered as
-#' the reference level. Accepted values are one of the levels in the treatment
-#' variable. Default to the first level used in the `glm` object.
+#' @param reference a string or list of strings indicating which treatment
+#' group(s) to use as reference level for pairwise comparisons. Accepted values
+#' must be a subset of the levels in the treatment variable. Default to the
+#' first n-1 treatment levels used in the `glm` object.
 #'
 #' This parameter influences the calculation of treatment effects
 #' relative to the chosen reference group.
@@ -68,10 +69,11 @@
 #' fit3$marginal_est
 #' fit3$marginal_se
 #'
+#' @importFrom utils combn
 #' @export
 #'
 apply_contrast <- function(object, contrast = c("diff", "rr", "or", "logrr", "logor"), reference) {
-  # assert means are available in object
+  # Assert means are available in object
   if (!"counterfactual.means" %in% names(object)) {
     msg <- sprintf(
       "Missing counterfactual means. First run `%1$s <- average_predictions(%1$s)`.",
@@ -79,7 +81,7 @@ apply_contrast <- function(object, contrast = c("diff", "rr", "or", "logrr", "lo
     )
     stop(msg, call. = FALSE)
   }
-  # assert varcov is available in object
+  # Assert varcov is available in object
   if (!"robust_varcov" %in% names(object)) {
     msg <- sprintf(
       "Missing robust varcov. First run `%1$s <- get_varcov(%1$s, ...)`.",
@@ -92,53 +94,81 @@ apply_contrast <- function(object, contrast = c("diff", "rr", "or", "logrr", "lo
   object <- .assert_sanitized(object, trt, warn = T)
 
   data <- .get_data(object)
-  # assert non-missing reference
+
+  # Assert non-missing reference or set default
   if (missing(reference)) {
-    reference <- object$xlevels[[trt]][1]
-    warning(sprintf("No reference argument was provided, using %s as the reference level", reference), call. = FALSE)
+    reference <- object$xlevels[[trt]][-nlevels(data[[trt]])]
+    warning(sprintf("No reference argument was provided, using {%s} as the reference level(s)", paste(reference, collapse = ", ")), call. = FALSE)
   }
 
-  # assert reference to be one of the treatment levels
-  if (!reference %in% levels(data[[trt]])) {
-    stop("Reference must be one of : ", paste(levels(data[[trt]]), collapse = ", "), ".")
+  # Assert reference to be subset of the treatment levels
+  if (!all(reference %in% levels(data[[trt]]))) {
+    stop("Reference levels must be a subset of treatment levels : ", paste(levels(data[[trt]]), collapse = ", "), ".")
   }
 
-  # match contrast argument and retrieve relevant functions
+  # Only accept at most nlevels(trt)-1 reference levels
+  if (length(reference) > (nlevels(data[[trt]])-1)) {
+    stop(sprintf("Too many reference levels provided. Expecting at most %s value(s) from the possible treatment levels: {%s}",
+                 nlevels(data[[trt]]) - 1,
+                 paste(levels(data[[trt]]), collapse = ", ")))
+  }
+
+  # Match contrast argument and retrieve relevant helper functions
   contrast <- match.arg(contrast)
   c_est <- get(contrast)
   c_str <- get(paste0(contrast, "_str"))
   c_grad <- get(paste0("grad_", contrast))
 
-  # set reference to 1 if it is the first level
-  reference_n <- which(levels(data[[trt]]) == reference)
-  cf_mean_ref <- object$counterfactual.means[reference_n]
-  cf_mean_inv <- object$counterfactual.means[3 - reference_n]
+  # Extract counterfactual means
+  cf_means <- object$counterfactual.means
 
-  trt_ref <- reference
-  trt_inv <- levels(data[[trt]])[-reference_n]
+  # Get all pairwise arm comparisons for contrasts
+  # Format according to specified reference levels
+  l <- levels(data[[trt]])
+  combos <- combn(l, 2, \(x) {
+    if (any(reference %in% x)) {
+      ref <- intersect(reference, x)[[1]]
+      comp <- x[x!=ref]
+      c(which(ref == l), which(comp==l))
+    } else {
+      c(NA, NA)
+    }
+  })
+  combos <- combos[, is.finite(colSums(combos)), drop=F]
+  if (length(reference) > 1) {
+    combos <- combos[,order(combos[1,])]
+  }
+  idxs <- matrix(F, nrow=length(l), ncol=length(l))
+  rownames(idxs) <- colnames(idxs) <- l
+  idxs[cbind(combos[2,], combos[1,])] <- T
 
-  # apply contrast to point estimate
-  marginal_est <- c_est(cf_mean_inv, cf_mean_ref)
+
+  # Get marginal estimates for the contrasts of interest, using correct ref levels
+  marginal_est <- outer(cf_means, cf_means, c_est)
+  marginal_est <- marginal_est[idxs]
+
+  # Define contrast jacobian
+  gr <- matrix(0, nrow=ncol(combos), ncol=length(l))
+  # Apply the grad function to all combinations
+  contrast_values <- t(apply(combos, 2, function(idx) c_grad(cf_means[idx[2]], cf_means[idx[1]])))
+  gr[cbind(1:ncol(combos), combos[1,])] <- contrast_values[, 1]
+  gr[cbind(1:ncol(combos), combos[2,])] <- contrast_values[, 2]
+  # Get marginal standard error for contrasts of interest
+  marginal_se <- sqrt(diag(gr %*% object$robust_varcov %*% t(gr)))
+
+  # Add string description for each comparison
+  contrast_desc <- paste0(contrast, ": ",
+                          apply(combos, 2, \(x) c_str(l[x[2]], l[x[1]])))
+  names(marginal_est) <- contrast_desc
+  names(marginal_se) <- contrast_desc
 
   object$marginal_est <- marginal_est
-  names(object$marginal_est) <- "marginal_est"
-  attr(object$marginal_est, "reference") <- trt_ref
-  attr(object$marginal_est, "contrast") <- paste0(contrast, ": ", c_str(trt_inv, trt_ref))
+  attr(object$marginal_est, "reference") <- reference
+  attr(object$marginal_est, "contrast") <- contrast_desc
 
-  # apply contrast to varcov
-  gr <- c_grad(cf_mean_inv, cf_mean_ref)
-
-  robust_varcov <- object$robust_varcov
-
-  # correct varcov order based on reference
-  if (reference_n == 2) diag(robust_varcov) <- rev(diag(robust_varcov))
-
-  marginal_se <- sqrt(t(gr) %*% robust_varcov %*% gr)
-
-  object$marginal_se <- marginal_se[[1]]
-  names(object$marginal_se) <- "marginal_se"
-  attr(object$marginal_se, "reference") <- trt_ref
-  attr(object$marginal_se, "contrast") <- paste0(contrast, ": ", c_str(trt_inv, trt_ref))
+  object$marginal_se <- marginal_se
+  attr(object$marginal_se, "reference") <- reference
+  attr(object$marginal_se, "contrast") <- contrast_desc
   attr(object$marginal_se, "type") <- attr(object$robust_varcov, "type")
 
   return(object)

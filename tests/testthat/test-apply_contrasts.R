@@ -1,5 +1,6 @@
-# set up example ----------------------------------------------------------
+# set up examples ----------------------------------------------------------
 
+# 2 arm example
 data01 <- trial01 |>
   transform(trtp = as.factor(trtp)) |>
   dplyr::filter(!is.na(aval))
@@ -13,6 +14,14 @@ example_varcov <- fit1$robust_varcov
 example_theta_s <- fit1$counterfactual.means[["0"]]
 example_theta_t <- fit1$counterfactual.means[["1"]]
 
+# 3 arm example
+data02 <- trial02_cdisc |>
+  transform(TRTPN = as.factor(TRTPN))
+
+fit_3arm <- glm(AVAL ~ TRTPN + SEX, family = "binomial", data = data02) |>
+  predict_counterfactuals(trt = "TRTPN") |>
+  average_predictions() |>
+  estimate_varcov(method="Ye")
 
 
 # test warnings/errors ------------------------------------------------------------
@@ -69,9 +78,7 @@ test_that("Test valid contrast types", {
 test_that("Correctly throwing errors on mismatched arguments", {
   expect_error(
     fit1 |>
-      apply_contrast(contrast = "diffs", reference = "0"),
-    "'arg' should be one of"
-  )
+      apply_contrast(contrast = "diffs", reference = "0"))
 })
 
 test_that("Test handling of reference levels", {
@@ -91,15 +98,25 @@ test_that("Test handling of reference levels", {
   expect_error(
     fit |>
       apply_contrast(contrast = "diffs", reference = "C"),
-    "Reference must be one of : A, B",
+    "Reference levels must be a subset of treatment levels : A, B.",
     fixed = TRUE
   )
+
+  # Too many reference levels
+  expect_error(
+    fit |>
+      apply_contrast(contrast = "diffs", reference = c("A", "B")),
+    "Too many reference levels provided.",
+    fixed = TRUE
+  )
+
 })
 
 
 test_that("Check model is sanitized", {
   fit1$sanitized <- NULL
-  expect_warning(apply_contrast(fit1, reference = "0"),
+  expect_warning(
+    apply_contrast(fit1, reference = "0"),
     "Input object did not meet the expected format for beeca. Results may not be valid. Consider using ?get_marginal_effect",
     fixed = TRUE
   )
@@ -272,3 +289,215 @@ test_that("logor contrast is correct for variance estimate", {
     )
   )
 })
+
+
+# tests for data with 3 arms ----------------------------------------
+
+test_that("Reference levels correctly handled when >2 treatment levels", {
+
+  expect_warning(
+    fit_ref12 <- fit_3arm |> apply_contrast()
+  )
+
+  # Default reference levels are first n-1 treatment levels
+  expect_equal(
+    attr(fit_ref12$marginal_est, "reference"),
+    fit_3arm$xlevels$TRTPN[-nlevels(fit_3arm$data$TRTPN)]
+  )
+
+  expect_equal(
+    attr(fit_ref12$marginal_est, "contrast"),
+    c("diff: 2-1", "diff: 3-1", "diff: 3-2")
+  )
+
+  # Custom order of reference levels is correctly handled
+  fit_ref32 <- fit_3arm |>
+    apply_contrast(contrast = "diff", reference = c("3", "2"))
+
+  expect_equal(
+    attr(fit_ref32$marginal_est, "contrast"),
+    c("diff: 1-2", "diff: 1-3", "diff: 2-3")
+  )
+
+  expect_equal(
+    fit_ref32$marginal_est[["diff: 1-2"]],
+    -fit_ref12$marginal_est[["diff: 2-1"]]
+  )
+  expect_equal(
+    fit_ref32$marginal_est[["diff: 1-3"]],
+    -fit_ref12$marginal_est[["diff: 3-1"]]
+  )
+  expect_equal(
+    fit_ref32$marginal_est[["diff: 2-3"]],
+    -fit_ref12$marginal_est[["diff: 3-2"]]
+  )
+
+  expect_equal(
+    unname(fit_ref32$marginal_se)[1:3],
+    unname(fit_ref12$marginal_se)[1:3]
+  )
+
+
+  gr <- matrix(c(-1,-1,0,
+                 1,0,-1,
+                 0,1,1),
+               nrow=3, ncol=3)
+  expect_equal(
+    unname(fit_ref12$marginal_se)[1:3],
+    sqrt(diag(gr %*% fit_ref12$robust_varcov %*% t(gr)))
+  )
+
+
+  # Switched references
+  fit_ref23 <- fit_3arm |>
+    apply_contrast(contrast = "diff", reference = c("2", "3"))
+
+  gr <- matrix(c(1,0,1,
+                 -1,-1,0,
+                 0,1,-1),
+               nrow=3, ncol=3)
+
+  expect_equal(
+    unname(fit_ref23$marginal_se)[1:3],
+    sqrt(diag(gr %*% fit_ref23$robust_varcov %*% t(gr)))
+  )
+
+
+  # Single reference
+  fit_ref2 <- fit_3arm |>
+    apply_contrast(contrast = "diff", reference = "2")
+
+  gr <- matrix(c(1,0,-1,
+                 -1,0,1),
+               nrow=2, ncol=3)
+  expect_equal(
+    unname(fit_ref2$marginal_se)[1:2],
+    sqrt(diag(gr %*% fit_ref2$robust_varcov %*% t(gr)))
+  )
+
+
+  # Check expected values for other contrast type
+  # (logor)
+  fit_ref12_lor <- fit_3arm |>
+    apply_contrast(contrast = "logor", reference = c("1", "2"))
+
+  fit_ref23_lor <- fit_3arm |>
+    apply_contrast(contrast = "logor", reference = c("2", "3"))
+
+  expect_equal(
+    unname(fit_ref12_lor$marginal_est)[1:3],
+    c(1.70521672372, 1.60865867380, -0.09655804992)
+  )
+  expect_equal(
+    unname(fit_ref12_lor$marginal_se)[1:3],
+    c(0.3385774965, 0.3336867307, 0.3470551734)
+  )
+
+  expect_equal(
+    unname(fit_ref23_lor$marginal_est)[1:3],
+    c(-1.70521672372, -0.09655804992, -1.60865867380)
+  )
+  expect_equal(
+    unname(fit_ref23_lor$marginal_se)[1:3],
+    c(0.3385774965, 0.3470551734, 0.3336867307)
+  )
+
+})
+
+
+
+
+
+# if RobinCar is available compare contrast results
+robincar_available <- requireNamespace("RobinCar", quietly = T)
+
+if (robincar_available){
+
+  test_that("Contrast results match RobinCar: diff", {
+    rc_diff <- RobinCar::robincar_glm(data.frame(fit_3arm$data),
+                                      response_col = "AVAL",
+                                      treat_col = "TRTPN",
+                                      formula = fit_3arm$formula,
+                                      g_family = fit_3arm$family,
+                                      contrast_h = "diff")
+    fit_ref1 <- fit_3arm |>
+      apply_contrast(contrast = "diff", reference = "1")
+
+    expect_equal(
+      unname(fit_ref1$marginal_est[1:2]),
+      unname(rc_diff$contrast$result$estimate)
+    )
+
+    expect_equal(
+      unname(fit_ref1$marginal_se[1:2]),
+      unname(rc_diff$contrast$result$se)
+    )
+
+    # switch reference
+    rc_diff_switched <- RobinCar::robincar_glm(data.frame(fit_3arm$data) |>
+                                                 transform(TRTPN = factor(TRTPN, levels=c("3", "1", "2"))),
+                                               response_col = "AVAL",
+                                               treat_col = "TRTPN",
+                                               formula = fit_3arm$formula,
+                                               g_family = fit_3arm$family,
+                                               contrast_h = "diff")
+    fit_ref3 <- fit_3arm |>
+      apply_contrast(contrast = "diff", reference = "3")
+
+    expect_equal(
+      unname(fit_ref3$marginal_est[1:2]),
+      unname(rc_diff_switched$contrast$result$estimate)
+    )
+
+    expect_equal(
+      unname(fit_ref3$marginal_se[1:2]),
+      unname(rc_diff_switched$contrast$result$se)
+    )
+
+  })
+
+
+  test_that("Contrast results match RobinCar: risk ratio", {
+    rc_rr <- RobinCar::robincar_glm(data.frame(fit_3arm$data),
+                                    response_col = "AVAL",
+                                    treat_col = "TRTPN",
+                                    formula = fit_3arm$formula,
+                                    g_family = fit_3arm$family,
+                                    contrast_h = "ratio")
+    fit_ref1 <- fit_3arm |>
+      apply_contrast(contrast = "rr", reference = "1")
+
+    expect_equal(
+      unname(fit_ref1$marginal_est[1:2]),
+      unname(rc_rr$contrast$result$estimate)
+    )
+
+    expect_equal(
+      unname(fit_ref1$marginal_se[1:2]),
+      unname(rc_rr$contrast$result$se)
+    )
+
+    # switch reference
+    rc_rr_switched <- RobinCar::robincar_glm(data.frame(fit_3arm$data) |>
+                                               transform(TRTPN = factor(TRTPN, levels=c("3", "1", "2"))),
+                                             response_col = "AVAL",
+                                             treat_col = "TRTPN",
+                                             formula = fit_3arm$formula,
+                                             g_family = fit_3arm$family,
+                                             contrast_h = "ratio")
+    fit_ref3 <- fit_3arm |>
+      apply_contrast(contrast = "rr", reference = "3")
+
+    expect_equal(
+      unname(fit_ref3$marginal_est[1:2]),
+      unname(rc_rr_switched$contrast$result$estimate)
+    )
+
+    expect_equal(
+      unname(fit_ref3$marginal_se[1:2]),
+      unname(rc_rr_switched$contrast$result$se)
+    )
+
+  })
+
+}
