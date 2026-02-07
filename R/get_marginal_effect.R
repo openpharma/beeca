@@ -27,7 +27,7 @@
 #' et al (2011) which is suitable for the variance estimation of conditional
 #' average treatment effect. The method `Ye` is based on Ye et al (2023) and is
 #' suitable for the variance estimation of population average treatment effect.
-#' For more details, see [Magirr et al. (2024)](https://osf.io/9mp58/).
+#' For more details, see Magirr et al. (2025) \doi{10.1002/pst.70021}.
 #'
 #' @param type a string indicating the type of
 #' variance estimator to use (only applicable for Ge's method). Supported types include HC0 (default),
@@ -35,10 +35,11 @@
 #'
 #' @param contrast a string indicating choice of contrast. Defaults to 'diff' for a risk difference. See \link[beeca]{apply_contrast}.
 #'
-#' @param reference a string indicating which treatment group should be considered as
-#' the reference level. Accepted values are one of the levels in the treatment
-#' variable. Default to the first level used in the `glm` object. This parameter influences the calculation of treatment effects
-#' relative to the chosen reference group.
+#' @param reference a string or list of strings indicating which treatment
+#' group(s) to use as reference level for pairwise comparisons. Accepted values
+#' must be a subset of the levels in the treatment variable. Default to the
+#' first n-1 treatment levels used in the `glm` object. This parameter influences
+#' the calculation of treatment effects relative to the chosen reference group.
 #'
 #' @param mod for Ye's method, the implementation of open-source RobinCar package
 #' has an additional variance decomposition step when estimating the robust variance,
@@ -60,6 +61,19 @@
 #'  marginal_se                \tab Standard error estimate of the marginal treatment effect estimate. \cr
 #'  marginal_results           \tab Analysis results data (ARD) containing a summary of the analysis for subsequent reporting. \cr
 #' }
+#' @seealso [predict_counterfactuals()] for generating counterfactual predictions
+#' @seealso [average_predictions()] for averaging counterfactual predictions
+#' @seealso [estimate_varcov()] for robust variance estimation
+#' @seealso [apply_contrast()] for computing treatment contrasts
+#' @seealso [beeca_fit()] for streamlined convenience wrapper
+#' @seealso [tidy.beeca()] for tidied parameter estimates
+#' @seealso [summary.beeca()] for detailed summary output
+#' @seealso [print.beeca()] for concise output
+#' @seealso [plot.beeca()] and [plot_forest()] for visualizations
+#' @seealso [augment.beeca()] for augmented data with predictions
+#' @seealso [as_gt()] for publication-ready tables
+#' @seealso [beeca_to_cards_ard()] for cards ARD integration
+#'
 #' @importFrom utils packageVersion
 #' @export
 #' @examples
@@ -81,38 +95,49 @@ get_marginal_effect <- function(object, trt, strata = NULL,
     apply_contrast(contrast, reference)
 
   data <- .get_data(object)
-
-  trt_ref <- attr(object$marginal_est, "reference")
-  trt_inv <- levels(data[[trt]])[-which(levels(data[[trt]]) == trt_ref)]
+  n_trt_levels <- nlevels(data[[trt]])
   outcome <- paste(object$formula[[2]])
 
-  marginal_results <- data.frame(
-    TRTVAR = c(rep(trt, 12)),
-    TRTVAL = c(
-      rep(trt_inv, 5), rep(trt_ref, 5),
-      rep(attributes(object$marginal_est)[["contrast"]], 2)
+  # Marginal results for each trt level
+  marginal_responses <- data.frame(
+    TRTVAR = rep(trt, 5*n_trt_levels),
+    TRTVAL = rep(levels(data[[trt]]), each=5),
+    PARAM = rep(outcome, 5),
+    ANALTYP1 = rep(c(rep("DESCRIPTIVE", 3), rep("INFERENTIAL", 2)), n_trt_levels),
+    STAT = rep(c("N", "n", "%", "risk", "risk_se"), n_trt_levels),
+    STATVAL = c(sapply(levels(data[[trt]]), \(x) {
+      c(
+        sum(data[trt] == x),
+        sum(data[outcome][data[trt] == x] == "1"),
+        sum(data[outcome][data[trt] == x] == "1") / sum(data[trt] == x) * 100,
+        object$counterfactual.means[x],
+        sqrt(object$robust_varcov[x, x])
+      )
+    })
     ),
-    PARAM = rep(outcome, 12),
-    ANALTYP1 = c(rep(c(rep("DESCRIPTIVE", 3), rep("INFERENTIAL", 2)), 2), rep("INFERENTIAL", 2)),
-    STAT = c("N", "n", "%", "risk", "risk_se", "N", "n", "%", "risk", "risk_se", contrast, paste0(contrast, "_se")),
-    STATVAL = c(
-      sum(data[trt] == trt_inv), sum(data[outcome][data[trt] == trt_inv] == "1"),
-      sum(data[outcome][data[trt] == trt_inv] == "1") / sum(data[trt] == trt_inv) * 100,
-      object$counterfactual.means[trt_inv], sqrt(object$robust_varcov[trt_inv, trt_inv]),
-      sum(data[trt] == trt_ref), sum(data[outcome][data[trt] == trt_ref] == "1"),
-      sum(data[outcome][data[trt] == trt_ref] == "1") / sum(data[trt] == trt_ref) * 100,
-      object$counterfactual.means[trt_ref], sqrt(object$robust_varcov[trt_ref, trt_ref]),
-      object$marginal_est, object$marginal_se
-    ),
-    ANALMETH = c(
-      rep(c("count", "count", "percentage", "g-computation", attributes(object$marginal_se)[["type"]]), 2),
-      "g-computation", attributes(object$marginal_se)[["type"]]
-    ),
-    ANALDESC = paste0("Computed using beeca@", packageVersion("beeca"))
-  ) |>
-    dplyr::as_tibble()
+    ANALMETH = rep(c("count", "count", "percentage", "g-computation",
+                     attributes(object$marginal_se)[["type"]]), n_trt_levels)
+  )
 
-  object$marginal_results <- marginal_results
+  # Contrast results
+  n_contrasts <- length(object$marginal_est)
+
+  marginal_contrasts <- data.frame(TRTVAR = rep(trt, 2*n_contrasts),
+                                   TRTVAL = c(rbind(attributes(object$marginal_est)[["contrast"]],
+                                                    attributes(object$marginal_se)[["contrast"]])),
+                                   PARAM = rep(outcome, 2*n_contrasts),
+                                   ANALTYP1 = c(rep("INFERENTIAL", 2*n_contrasts)),
+                                   STAT = rep(c(contrast, paste0(contrast, "_se")), n_contrasts),
+                                   STATVAL = c(rbind(object$marginal_est, object$marginal_se)),
+                                   ANALMETH = rep(c("g-computation", attributes(object$marginal_se)[["type"]]), n_contrasts)
+  )
+
+  object$marginal_results <- rbind(marginal_responses,
+                                   marginal_contrasts) |> dplyr::as_tibble()
+  object$marginal_results$ANALDESC <- paste0("Computed using beeca@", packageVersion("beeca"))
+
+  # Add beeca class to enable S3 methods (tidy, augment, etc.)
+  class(object) <- c("beeca", class(object))
 
   return(object)
 }

@@ -50,8 +50,8 @@
 #'
 #' @seealso [predict_counterfactuals()] for generating counterfactual
 #' predictions.
-#' @seealso [estimate_varcov()] for estimating the variance-covariate matrix
-#' of mariginal effects
+#' @seealso [estimate_varcov()] for estimating the variance-covariance matrix
+#' of marginal effects
 #' @seealso [get_marginal_effect()] for estimating marginal effects directly
 #' from an original \code{\link[stats]{glm}} object
 #'

@@ -55,16 +55,9 @@ test_that("Treatment variable in model data", {
 test_that("Check treatment variable is a factor", {
   data_complete$trtp <- as.numeric(data_complete$trtp)
   fit1 <- glm(aval ~ trtp + bl_cov, family = binomial(link = "logit"), data = data_complete)
-  expect_error(sanitize_model(fit1, "trtp"),
+  expect_error(
+    sanitize_model(fit1, "trtp"),
     'Treatment variable "trtp" must be of type factor, not "double".',
-    fixed = TRUE
-  )
-})
-
-test_that("Correctly throwing errors on treatment variable > 2 levels", {
-  fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = trial01 |> transform(trtp = factor(as.numeric(trtp) + rbinom(268, size = 1, prob = 0.5))))
-  expect_error(sanitize_model(fit1, "trtp"),
-    'Treatment variable "trtp" must have 2 levels. Found 3: {0,1,2}.',
     fixed = TRUE
   )
 })
@@ -80,7 +73,8 @@ test_that("Check response variable is 0/1", {
 test_that("Correctly throw error on incorrect model class", {
   lm_fit <- stats::lm(aval ~ trtp + bl_cov, data = data_complete)
 
-  expect_error(sanitize_model(lm_fit, "trtp"),
+  expect_error(
+    sanitize_model(lm_fit, "trtp"),
     'Model of class "lm" is not supported.',
     fixed = TRUE
   )
@@ -98,7 +92,8 @@ test_that("Throw warning if model matrix not full rank", {
   mat[["x3"]] <- mat$x1 + mat$x2
   fit1 <- glm(y ~ trtp + x1 + x2 + x3, family = "binomial", data = mat)
 
-  expect_error(sanitize_model(fit1, "trtp"),
+  expect_error(
+    sanitize_model(fit1, "trtp"),
     "The data does not have full rank, please check glm model fitting.",
     fixed = TRUE
   )
@@ -109,12 +104,14 @@ test_that("Throw warning if model not converged", {
   # fit glm with reduced max iterations so does not converge
   suppressWarnings(
     fit1 <- glm(aval ~ trtp,
-      family = "binomial", data = data,
-      control = glm.control(maxit = 1)
+                family = "binomial",
+                data = data_complete,
+                control = glm.control(maxit = 1)
     )
   )
 
-  expect_warning(sanitize_model(fit1, "trtp"),
+  expect_warning(
+    sanitize_model(fit1, "trtp"),
     "The glm model was not converged, please check glm model fitting.",
     fixed = TRUE
   )
@@ -124,7 +121,8 @@ test_that("Throw warning if model not converged", {
 test_that("Throw error if treatment not on right hand side of model formula", {
   fit1 <- glm(trtp ~ aval, family = "binomial", data = data)
 
-  expect_error(sanitize_variable(fit1, "trtp"),
+  expect_error(
+    sanitize_variable(fit1, "trtp"),
     'Did not find the treatment variable "trtp" on right hand side of the model formula',
     fixed = TRUE
   )

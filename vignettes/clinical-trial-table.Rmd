@@ -1,0 +1,399 @@
+---
+title: "Creating Clinical Trial Tables with beeca"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Creating Clinical Trial Tables with beeca}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Overview
+
+This vignette demonstrates how to create publication-ready clinical trial tables from beeca analysis results. We cover:
+
+1. End-to-end analysis workflow from data to table
+2. Creating formatted tables with the `{gt}` package
+3. Adding titles, footnotes, and analysis set information
+4. Customizing table appearance for regulatory submissions
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(beeca)
+library(dplyr)
+```
+
+For the table examples, we use the `{gt}` package, which produces HTML tables ideal for pkgdown websites and web-based reports. For Word or PowerPoint output, consider the `{flextable}` or `{huxtable}` packages, which can consume the same `beeca_summary_table()` output.
+
+```{r gt-setup, eval=requireNamespace("gt", quietly = TRUE)}
+library(gt)
+```
+
+## Example Dataset
+
+We use the `trial02_cdisc` dataset included in beeca, which follows CDISC ADaM standards. This is a 3-arm clinical trial with Placebo and two doses of Xanomeline.
+
+```{r data-prep}
+# Prepare the analysis dataset
+dat <- trial02_cdisc |>
+  mutate(
+    TRTP = factor(TRTP, levels = c("Placebo", "Xanomeline Low Dose", "Xanomeline High Dose"))
+  )
+
+# Review the data structure
+dat |>
+  group_by(TRTP) |>
+  summarise(
+    N = n(),
+    Responders = sum(AVAL),
+    `Response Rate (%)` = round(mean(AVAL) * 100, 1),
+    .groups = "drop"
+  )
+```
+
+## End-to-End Analysis
+
+### Step 1: Fit the Working Model
+
+We fit a logistic regression model adjusting for baseline covariates (sex, race, and age):
+
+```{r fit-model}
+# Fit logistic regression with covariate adjustment
+fit <- glm(
+  AVAL ~ TRTP + SEX + RACE + AGE,
+  family = binomial,
+  data = dat
+)
+
+# Model summary
+summary(fit)$coefficients[1:4, ]
+```
+
+### Step 2: Estimate Marginal Treatment Effect
+
+Using the Ye et al. (2023) method for robust variance estimation:
+
+```{r marginal-effect}
+# Calculate marginal treatment effect with risk difference contrast
+marginal_fit <- get_marginal_effect(
+  fit,
+  trt = "TRTP",
+  method = "Ye",
+  contrast = "diff",
+  reference = "Placebo"
+)
+
+# View the Analysis Results Data (ARD)
+marginal_fit$marginal_results
+```
+
+### Step 3: Review Results
+
+The beeca package provides several ways to view results:
+
+```{r summary-methods}
+# Concise print output
+print(marginal_fit)
+
+# Detailed summary with confidence intervals
+summary(marginal_fit, conf.level = 0.95)
+```
+
+Using the broom-style `tidy()` method:
+
+```{r tidy-output}
+# Tidy data frame output
+tidy(marginal_fit, conf.int = TRUE, include_marginal = TRUE)
+```
+
+## Creating Clinical Trial Tables with gt
+
+### Basic Table
+
+The `as_gt()` function converts beeca results directly to a formatted gt table:
+
+```{r basic-gt, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(marginal_fit)
+```
+
+### Publication-Ready Table with Metadata
+
+Add title, footnotes, and analysis set information for regulatory submissions:
+
+```{r publication-table, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(
+  marginal_fit,
+  title = "Table 14.2.1: Primary Efficacy Analysis",
+  subtitle = "Response Rate by Treatment Group - Risk Difference",
+  source_note = "Covariate-adjusted analysis using logistic regression with g-computation.",
+  analysis_set = "Full Analysis Set (FAS)"
+)
+```
+
+### Customizing Table Options
+
+Control confidence level, decimal places, and display options:
+
+```{r custom-options, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(
+  marginal_fit,
+  title = "Table 14.2.1.1: Sensitivity Analysis",
+  subtitle = "Response Rate with 90% Confidence Intervals",
+  conf.level = 0.90,
+  risk_digits = 2,
+  effect_digits = 3,
+  analysis_set = "Per Protocol Set (PPS)",
+  analysis_set_n = 240,
+  source_note = "Per protocol analysis excludes major protocol deviations."
+)
+```
+
+### Displaying Results as Proportions
+
+By default, risks are displayed as percentages. Use `risk_percent = FALSE` for proportions:
+
+```{r proportions, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(
+  marginal_fit,
+  title = "Table 14.2.2: Response Proportions",
+  risk_percent = FALSE,
+  effect_digits = 4,
+  analysis_set = "Full Analysis Set (FAS)"
+)
+```
+
+## Alternative Contrasts
+
+### Risk Ratio
+
+```{r risk-ratio}
+# Fit with risk ratio contrast
+fit_rr <- get_marginal_effect(
+  fit,
+  trt = "TRTP",
+  method = "Ye",
+  contrast = "rr",
+  reference = "Placebo"
+)
+
+# Summary
+summary(fit_rr)
+```
+
+```{r rr-table, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(
+  fit_rr,
+  title = "Table 14.2.3: Risk Ratio Analysis",
+  analysis_set = "Full Analysis Set (FAS)",
+  source_note = "Risk ratios >1 indicate higher response in active treatment."
+)
+```
+
+### Odds Ratio
+
+```{r odds-ratio}
+# Fit with odds ratio contrast
+fit_or <- get_marginal_effect(
+  fit,
+  trt = "TRTP",
+  method = "Ye",
+  contrast = "or",
+  reference = "Placebo"
+)
+
+summary(fit_or)
+```
+
+```{r or-table, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(
+  fit_or,
+  title = "Table 14.2.4: Odds Ratio Analysis",
+  analysis_set = "Full Analysis Set (FAS)",
+  source_note = "Marginal odds ratios from g-computation."
+)
+```
+
+## Working with the Summary Table Helper
+
+For more flexibility, use `beeca_summary_table()` to get structured data frames:
+
+```{r summary-table-helper}
+# Get structured summary data
+summary_data <- beeca_summary_table(marginal_fit, conf.level = 0.95)
+
+# Per-arm statistics
+summary_data$arm_statistics
+
+# Treatment effect estimates
+summary_data$treatment_effects
+
+# Analysis metadata
+summary_data$metadata
+```
+
+This allows custom table creation with any table package:
+
+```{r custom-table, eval=requireNamespace("gt", quietly = TRUE)}
+# Custom table from summary data
+summary_data$treatment_effects |>
+  mutate(
+    CI = sprintf("(%.2f, %.2f)", ci_low, ci_high),
+    `P-value` = format_pvalue(p_value)
+  ) |>
+  select(Comparison = comparison, Estimate = estimate, `Std. Error` = std_error, CI, `P-value`) |>
+  gt() |>
+  tab_header(
+    title = "Treatment Effect Summary",
+    subtitle = "Risk Difference (%) vs Placebo"
+  ) |>
+  fmt_number(columns = c(Estimate, `Std. Error`), decimals = 2)
+```
+
+## Using beeca_fit() for Streamlined Workflow
+
+The `beeca_fit()` function provides a simplified interface:
+
+```{r beeca-fit}
+# One-step analysis
+result <- beeca_fit(
+  data = dat,
+  outcome = "AVAL",
+  treatment = "TRTP",
+  covariates = c("SEX", "RACE", "AGE"),
+  method = "Ye",
+  contrast = "diff",
+  reference = "Placebo"
+)
+
+# Same output methods work
+summary(result)
+```
+
+```{r beeca-fit-table, eval=requireNamespace("gt", quietly = TRUE)}
+as_gt(
+  result,
+  title = "Table 14.2.5: Primary Analysis (beeca_fit)",
+  analysis_set = "Full Analysis Set (FAS)",
+  source_note = "Analysis performed using beeca_fit() convenience function."
+)
+```
+
+## Comparing Variance Methods
+
+Compare results between Ye et al. and Ge et al. methods:
+
+```{r compare-methods}
+# Ye method (recommended for marginal/unconditional estimand)
+fit_ye <- get_marginal_effect(fit, trt = "TRTP", method = "Ye",
+                               contrast = "diff", reference = "Placebo")
+
+# Ge method (for conditional estimand)
+fit_ge <- get_marginal_effect(fit, trt = "TRTP", method = "Ge", type = "HC0",
+                               contrast = "diff", reference = "Placebo")
+
+# Compare standard errors
+comparison <- data.frame(
+  Method = c("Ye et al. (2023)", "Ge et al. (2011)"),
+  SE_LowDose = c(fit_ye$marginal_se[1], fit_ge$marginal_se[1]),
+  SE_HighDose = c(fit_ye$marginal_se[2], fit_ge$marginal_se[2])
+)
+comparison
+```
+
+## Forest Plot Visualization
+
+Complement tables with forest plots:
+
+```{r forest-plot, fig.width=8, fig.height=4}
+# Forest plot of treatment effects
+plot(marginal_fit,
+     main = "Treatment Effect: Risk Difference vs Placebo",
+     xlab = "Risk Difference (%)")
+```
+
+## Complete Reporting Example
+
+Here's a complete workflow for a regulatory submission:
+
+```{r complete-example, eval=requireNamespace("gt", quietly = TRUE)}
+# 1. Define analysis population
+analysis_data <- trial02_cdisc |>
+  filter(FASFL == "Y") |>  # Full Analysis Set flag
+  mutate(TRTP = factor(TRTP, levels = c("Placebo", "Xanomeline Low Dose", "Xanomeline High Dose")))
+
+n_fas <- nrow(analysis_data)
+
+# 2. Fit model and estimate treatment effect
+primary_analysis <- glm(
+  AVAL ~ TRTP + SEX + RACE + AGE,
+  family = binomial,
+  data = analysis_data
+) |>
+  get_marginal_effect(
+    trt = "TRTP",
+    method = "Ye",
+    contrast = "diff",
+    reference = "Placebo"
+  )
+
+# 3. Create primary efficacy table
+as_gt(
+  primary_analysis,
+  title = "Table 14.2.1: Primary Efficacy Analysis",
+  subtitle = "Response Rate by Treatment Group",
+  analysis_set = "Full Analysis Set (FAS)",
+  analysis_set_n = n_fas,
+  conf.level = 0.95,
+  risk_digits = 1,
+  effect_digits = 2,
+  source_note = paste(
+    "Response defined as AVAL = 1.",
+    "Risk difference estimated using g-computation with robust variance estimation (Ye et al. 2023).",
+    "Model adjusted for sex, race, and age at baseline.",
+    sep = " "
+  )
+)
+```
+
+## Summary
+
+This vignette demonstrated beeca's complete clinical trial table workflow:
+
+- **`get_marginal_effect()`** for covariate-adjusted treatment effect estimation
+- **`as_gt()`** for publication-ready regulatory tables with metadata
+- **`beeca_summary_table()`** for structured data suitable for custom table creation
+- **`beeca_fit()`** for streamlined one-step analysis
+- **`tidy()`** and **`summary()`** for flexible result inspection
+- **`plot()`** for forest plot visualization
+
+All examples used the `trial02_cdisc` dataset with the Ye et al. (2023) method for robust variance estimation targeting the population average treatment effect (PATE).
+
+**Next steps:**
+
+- For estimand concepts and variance method selection, see `vignette('estimand_and_implementations')`
+- For integrating beeca results with the cards ARD framework, see `vignette('ard-cards-integration')`
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```
+
+## References
+
+- Ge, M., Durham, L.K., Meyer, R.D., Xie, W., & Thomas, N. (2011). Covariate-Adjusted Difference in Proportions from Clinical Trials Using Logistic Regression and Weighted Risk Differences. *Drug Information Journal*, 45, 481-493. https://doi.org/10.1177/009286151104500409
+
+- Ye, T., Bannick, M., Yi, Y., & Shao, J. (2023). Robust Variance Estimation for Covariate-Adjusted Unconditional Treatment Effect in Randomized Clinical Trials with Binary Outcomes. *Statistical Theory and Related Fields*, 7(2), 159-163. https://doi.org/10.1080/24754269.2023.2205802
+
+- Magirr, D., Wang, C., Przybylski, A., & Baillie, M. (2025). Estimating the Variance of Covariate-Adjusted Estimators of Average Treatment Effects in Clinical Trials With Binary Endpoints. *Pharmaceutical Statistics*, 24(4), e70021. https://doi.org/10.1002/pst.70021
+
+- FDA (2023). Adjusting for Covariates in Randomized Clinical Trials for Drugs and Biological Products. Guidance for Industry. https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adjusting-covariates-randomized-clinical-trials-drugs-and-biological-products

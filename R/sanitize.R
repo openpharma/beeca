@@ -117,9 +117,9 @@ sanitize_variable <- function(model, trt) {
     msg <- sprintf('Treatment variable "%s" must be of type factor, not "%s".', trt, typeof(data[[trt]]))
     stop(msg, call. = FALSE)
   }
-  # assert trt has 2 levels
-  if (nlevels(data[[trt]]) != 2) {
-    msg <- sprintf('Treatment variable "%s" must have 2 levels. Found %s: {%s}.', trt, length(levels(data[[trt]])), paste(levels(data[[trt]]), collapse = ","))
+  # assert trt has at least 2 levels
+  if (nlevels(data[[trt]]) < 2) {
+    msg <- sprintf('Treatment variable "%s" must have at least 2 levels. Found %s: {%s}.', trt, nlevels(data[[trt]]), paste(levels(data[[trt]]), collapse = ","))
     stop(msg, call. = FALSE)
   }
   # assert response is coded 0/1
@@ -142,7 +142,7 @@ sanitize_variable <- function(model, trt) {
   if (is.null(object$sanitized) || object$sanitized == FALSE) {
     if (warn) {
       warning("Input object did not meet the expected format for beeca. Results may not be valid. Consider using ?get_marginal_effect",
-        call. = FALSE
+              call. = FALSE
       )
     }
     object <- sanitize_model(object, trt)

@@ -1,0 +1,260 @@
+---
+title: "Integration with cards ARD Framework"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Integration with cards ARD Framework}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Motivation
+
+You've completed your covariate-adjusted analysis using `get_marginal_effect()` and obtained marginal treatment effects. Now you need to create Table 14.2.1 for your Clinical Study Report. This table requires:
+
+- **Baseline characteristics** from `cards::ard_continuous()` and `cards::ard_categorical()`
+- **Treatment effects** from beeca's robust variance estimation
+- **Combined into a single ARD** for your reporting pipeline (gtsummary, tfrmt, etc.)
+
+This vignette shows how beeca's ARD format integrates seamlessly with the cards/cardx ecosystem for comprehensive clinical trial reporting. For methodology background and choosing between variance estimation methods, see `vignette('estimand_and_implementations')`.
+
+## ARD Frameworks Comparison
+
+### beeca ARD Structure
+
+The beeca package creates ARDs following pharmaceutical industry conventions for clinical trial reporting:
+
+```{r setup}
+library(beeca)
+
+dat <- trial02_cdisc |>
+  dplyr::mutate(TRTP = factor(TRTP))
+fit1 <- glm(AVAL ~ TRTP + SEX + RACE + AGE, family = binomial, data = dat) |>
+  get_marginal_effect(trt = "TRTP", method = "Ye", contrast = "diff", reference = "Placebo")
+
+fit1$marginal_results
+```
+
+**beeca ARD Schema:**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `TRTVAR` | character | Treatment variable name |
+| `TRTVAL` | character | Treatment level value |
+| `PARAM` | character | Parameter/outcome variable name |
+| `ANALTYP1` | character | Analysis type (DESCRIPTIVE or INFERENTIAL) |
+| `STAT` | character | Statistic identifier (N, n, %, risk, risk_se, diff, diff_se) |
+| `STATVAL` | numeric | Numeric value of the statistic |
+| `ANALMETH` | character | Analysis method (count, percentage, g-computation, HC0, etc.) |
+| `ANALDESC` | character | Analysis description including package version |
+
+**Key Features:**
+- CDISC ADaM-inspired column names (PARAM, ANALTYP1)
+- Compact structure optimized for clinical trial reporting
+- Single value per row (atomic numeric type)
+- Direct integration with CDISC workflows
+
+### cards/cardx ARD Structure
+
+The cards package provides a more general ARD framework for statistical computing:
+
+**cards ARD Schema:**
+
+| Column | Description |
+|--------|-------------|
+| `group1` | First grouping variable name |
+| `group1_level` | Level/value of first grouping variable |
+| `group2` | Second grouping variable name (optional) |
+| `group2_level` | Level/value of second grouping variable (optional) |
+| `variable` | The analysis variable name |
+| `variable_level` | Specific level of the variable (for categorical) |
+| `stat_name` | Statistical measure identifier |
+| `stat_label` | Human-readable label for the statistic |
+| `stat` | The calculated value (list-column) |
+| `context` | Analysis context metadata |
+| `fmt_fn` | Formatting function reference (list-column) |
+| `warning` | Warnings from calculation (list-column) |
+| `error` | Errors from calculation (list-column) |
+
+**Key Features:**
+- List-column structure for flexible data types
+- Built-in error/warning capture
+- Human-readable labels separate from internal names
+- Formatting functions attached to each statistic
+- Extensible context system
+
+## Mapping Between Frameworks
+
+| beeca | cards | Notes |
+|-------|-------|-------|
+| `TRTVAR` | `group1` | Treatment variable name |
+| `TRTVAL` | `group1_level` | Treatment level |
+| `PARAM` | `variable` | Outcome variable |
+| `STAT` | `stat_name` | Statistic identifier |
+| `STATVAL` | `stat` | Value (numeric vs list-column) |
+| `ANALTYP1` + `ANALMETH` | `context` | Analysis context |
+| — | `stat_label` | Missing in beeca |
+| — | `fmt_fn` | Missing in beeca |
+| — | `warning`, `error` | Missing in beeca |
+| `ANALDESC` | attribute | Package metadata |
+
+## Converting beeca ARD to cards Format
+
+The beeca package provides the `beeca_to_cards_ard()` function to convert `marginal_results` output to the cards ARD format. This enables seamless integration with the cards/cardx ecosystem.
+
+The conversion function:
+- Maps beeca columns (TRTVAR, TRTVAL, PARAM, STAT, STATVAL) to cards columns (group1, group1_level, variable, stat_name, stat)
+- Adds human-readable stat_label for each statistic
+- Converts atomic numeric values to list-columns (required by cards)
+- Consolidates ANALTYP1 and ANALMETH into a single context field
+- Preserves original beeca metadata as attributes
+
+See `?beeca_to_cards_ard` for detailed documentation and the mapping table between beeca and cards columns.
+
+## Example Usage
+
+```{r example-usage, eval=requireNamespace("cards", quietly = TRUE)}
+library(cards)
+
+# Convert to cards format (fit1 created in setup chunk)
+cards_ard <- beeca_to_cards_ard(fit1$marginal_results)
+
+# Print the cards ARD (uses print method for 'card' class)
+print(cards_ard)
+
+# Bind with other cards ARDs
+combined_ard <- cards::bind_ard(
+  cards_ard,
+  cards::ard_continuous(dat, by = TRTP, variables = AGE)
+)
+
+print(combined_ard)
+```
+
+## Use Cases for Integration
+
+### 1. Comprehensive Reporting
+
+Combine beeca's covariate-adjusted treatment effects with descriptive statistics from cards:
+
+```{r comprehensive-reporting, eval=TRUE}
+# Treatment effect from beeca
+te_ard <- beeca_to_cards_ard(fit1$marginal_results)
+
+# Baseline characteristics from cards
+baseline_ard <- cards::ard_continuous(
+  data = dat,
+  by = TRTP,
+  variables = AGE
+)
+
+# Combine into comprehensive ARD
+full_ard <- cards::bind_ard(te_ard, baseline_ard)
+```
+
+### 2. Quality Control Workflows
+
+Use cards error-handling features with beeca results:
+
+```{r qc-workflow, eval=TRUE}
+# Multiple analyses with error capture
+contrasts <- c("diff", "rr", "or")
+analyses <- lapply(contrasts, function(contrast_type) {
+  cards::eval_capture_conditions({
+    glm(AVAL ~ TRTP + SEX + RACE + AGE, family = binomial, data = dat) |>
+      get_marginal_effect(trt = "TRTP", contrast = contrast_type, reference = "Placebo") |>
+      (\(x) x$marginal_results)()
+  })
+})
+
+# Check for errors
+errors <- Filter(function(x) !is.null(x$error), analyses)
+```
+
+### 3. Cross-Study Meta-Analysis
+
+Standardize results across multiple studies:
+
+```{r create-study-fits, eval=TRUE}
+# Create fit objects for two studies (using same data for illustration)
+fit_study1 <- glm(AVAL ~ TRTP + SEX + RACE + AGE, family = binomial, data = dat) |>
+  get_marginal_effect(trt = "TRTP", method = "Ye", contrast = "diff", reference = "Placebo")
+
+fit_study2 <- glm(AVAL ~ TRTP + SEX + RACE + AGE, family = binomial, data = dat) |>
+  get_marginal_effect(trt = "TRTP", method = "Ye", contrast = "diff", reference = "Placebo")
+```
+
+```{r meta-analysis, eval=TRUE}
+# Study 1 (beeca)
+study1_ard <- beeca_to_cards_ard(fit_study1$marginal_results) |>
+  dplyr::mutate(study = "STUDY001")
+
+# Study 2 (beeca)
+study2_ard <- beeca_to_cards_ard(fit_study2$marginal_results) |>
+  dplyr::mutate(study = "STUDY002")
+
+# Combine
+meta_ard <- cards::bind_ard(study1_ard, study2_ard)
+
+# Extract estimates for meta-analysis
+estimates <- meta_ard |>
+  dplyr::filter(stat_name == "diff") |>
+  dplyr::mutate(estimate = unlist(stat))
+```
+
+## When to Use Each Format
+
+### Use beeca's Native ARD When:
+- Working primarily in CDISC environments
+- Generating clinical trial reports
+- Compact storage is preferred
+- Integrating with ADaM datasets
+- Direct numeric values are sufficient
+
+### Convert to cards ARD When:
+- Combining with other cards/cardx analyses
+- Need error/warning tracking
+- Want formatting functions attached
+- Working with general statistical workflows
+- Need extensible metadata system
+- Generating complex multi-analysis reports
+
+## Design Philosophy Differences
+
+### beeca ARD
+- **Goal:** Clinical trial reporting efficiency
+- **Structure:** Compact, CDISC-aligned
+- **Storage:** Atomic numeric values
+- **Context:** Domain-specific columns (ANALTYP1, ANALMETH)
+- **Focus:** Marginal treatment effects
+
+### cards ARD
+- **Goal:** General statistical computing reproducibility
+- **Structure:** Flexible, extensible
+- **Storage:** List-columns for any data type
+- **Context:** Single extensible context column
+- **Focus:** Any statistical analysis
+
+## Next Steps
+
+- For estimand concepts and method selection, see `vignette('estimand_and_implementations')`
+- For creating regulatory-ready tables, see `vignette('clinical-trial-table')`
+
+## References
+
+- [cards package documentation](https://insightsengineering.github.io/cards/)
+- [cardx package documentation](https://insightsengineering.github.io/cardx/)
+- [CDISC ADaM Implementation Guide](https://www.cdisc.org/standards/foundational/adam)
+- [beeca package documentation](https://openpharma.github.io/beeca/)
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```

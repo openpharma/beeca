@@ -17,19 +17,18 @@
 #' @return an updated `glm` object appended with an
 #' additional component `counterfactual.predictions`.
 #'
-#' This component contains a tibble with two columns: `cf_pred_0` and `cf_pred_1`,
-#' representing counterfactual predictions for each level of the
-#' treatment variable. A descriptive `label` attribute explains the counterfactual
-#' scenario associated with each column.
+#' This component contains a tibble with columns representing counterfactual
+#' predictions for each level of the treatment variable. A descriptive `label`
+#' attribute explains the counterfactual scenario associated with each column.
 #'
 #' @importFrom stats predict
 #' @importFrom dplyr as_tibble
 #' @export
 #'
 #' @details
-#' The function works by creating two new datasets from the original data used
-#' to fit the GLM model. In these datasets, the treatment variable
-#' is set to each of its levels across all records (e.g., patients).
+#' The function works by creating new datasets from the original data used
+#' to fit the GLM model. In these datasets, the treatment variable for all
+#' records (e.g., patients) is set to each possible treatment level.
 #'
 #' Predictions are then made for each dataset based on the fitted GLM model,
 #' simulating the response variable under each treatment condition.
@@ -61,22 +60,21 @@ predict_counterfactuals <- function(object, trt) {
 
   data <- .get_data(object)
 
-  # calculate counterfactual predictions for each trt level
-  X0 <- X1 <- data
-  X0[, trt] <- levels(data[[trt]])[1]
-  X1[, trt] <- levels(data[[trt]])[2]
-  cf_pred_0 <- predict(object, newdata = X0, type = "response")
-  cf_pred_1 <- predict(object, newdata = X1, type = "response")
+  # Calculate counterfactual predictions for each trt level
+  cf_preds <- list()
+  for (trtlevel in levels(data[[trt]])) {
+    X_cf <- data
+    X_cf[, trt] <- trtlevel
+    cf_pred <- predict(object, newdata = X_cf, type = "response")
+    cf_preds[[trtlevel]] <- cf_pred
+  }
 
-  # store predictions in tidy dataframe
-  cf_predictions <- data.frame(
-    cf_pred_0 = cf_pred_0,
-    cf_pred_1 = cf_pred_1
-  ) |>
+  # Store predictions in tidy dataframe
+  cf_predictions <- do.call(cbind, cf_preds) |>
     dplyr::as_tibble()
 
   cf_lbl <- \(trt, x) paste0("Counterfactual predictions setting ", trt, "=", x, " for all records")
-  attr(cf_predictions, "label") <- c(cf_lbl(trt, levels(data[[trt]])[1]), cf_lbl(trt, levels(data[[trt]])[2]))
+  attr(cf_predictions, "label") <- sapply(levels(data[[trt]]), \(x) cf_lbl(trt, x))
   attr(cf_predictions, "treatment.variable") <- trt
 
   object$counterfactual.predictions <- cf_predictions

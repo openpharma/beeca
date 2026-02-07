@@ -2,3 +2,75 @@ url: https://openpharma.github.io/beeca/
 template:
   bootstrap: 5
 
+reference:
+- title: Quick Start
+  desc: >
+    Streamlined workflow for rapid analysis with sensible defaults.
+  contents:
+  - beeca_fit
+
+- title: Core Analysis Pipeline
+  desc: >
+    Manual pipeline for full control over each step of marginal effect estimation.
+  contents:
+  - get_marginal_effect
+  - predict_counterfactuals
+  - average_predictions
+  - estimate_varcov
+  - apply_contrast
+
+- title: Working with Results
+  desc: >
+    S3 methods and visualization tools for beeca objects.
+  contents:
+  - print.beeca
+  - summary.beeca
+  - tidy.beeca
+  - augment.beeca
+  - plot.beeca
+  - plot_forest
+
+- title: Tables and Reporting
+  desc: >
+    Functions for creating publication-quality tables and ARD formats.
+  contents:
+  - beeca_summary_table
+  - as_gt
+  - beeca_to_cards_ard
+  - format_pvalue
+
+- title: Model Validation
+  desc: >
+    Input validation for ensuring models meet beeca requirements.
+  contents:
+  - sanitize_model
+  - sanitize_model.glm
+  - sanitize_variable
+
+- title: Example Datasets
+  desc: >
+    Clinical trial datasets for examples and cross-validation.
+  contents:
+  - trial01
+  - trial02_cdisc
+  - margins_trial01
+  - ge_macro_trial01
+
+- title: Package Documentation
+  desc: >
+    Package-level documentation and re-exported functions.
+  contents:
+  - beeca-package
+  - reexports
+
+articles:
+- title: Get Started
+  navbar: ~
+  contents:
+  - estimand_and_implementations
+
+- title: Applications
+  navbar: Applications
+  contents:
+  - clinical-trial-table
+  - ard-cards-integration

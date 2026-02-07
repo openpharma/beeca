@@ -1,4 +1,4 @@
-# set up example ----------------------------------------------------------
+# set up examples ----------------------------------------------------------
 
 data01 <- trial01 |>
   transform(trtp = as.factor(trtp)) |>
@@ -8,6 +8,14 @@ fit1 <- glm(aval ~ trtp + bl_cov, family = "binomial", data = data01) |>
   beeca:::average_predictions()
 
 gr <- c(-1, 1)
+
+# 3 arm example
+data02 <- trial02_cdisc |>
+  transform(TRTPN = as.factor(TRTPN))
+
+fit_3arm <- glm(AVAL ~ TRTPN + SEX, family = "binomial", data = data02) |>
+  beeca::predict_counterfactuals(trt = "TRTPN") |>
+  beeca::average_predictions()
 
 
 # test warnings/errors ------------------------------------------------------------
@@ -20,7 +28,7 @@ test_that("Correctly throwing errors on missing components", {
   )
 })
 
-test_that("Correctly throwing warnings on arugment mismatch", {
+test_that("Correctly throwing errors on argument mismatch", {
   expect_error(
     fit1 |>
       estimate_varcov(method = "Fe")
@@ -31,6 +39,13 @@ test_that("Correctly throwing errors on missing stratification variable", {
   expect_error(
     fit1 |>
       estimate_varcov(method = "Ye", strata = "bl_cov_c")
+  )
+})
+
+test_that("Correctly throwing warnings when strata supplied with method Ge", {
+  expect_warning(
+    fit1 |>
+      estimate_varcov(method = "Ge", strata = "bl_cov_c")
   )
 })
 
@@ -50,8 +65,10 @@ test_that("Check model is sanitized", {
 
 V1 <- estimate_varcov(fit1, method = "Ye")$robust_varcov
 
+V1_3arm <- estimate_varcov(fit_3arm, method = "Ye")$robust_varcov
+
 # if RobinCar is available
-robincar_available <- requireNamespace("RobinCar", versionCheck = list(name = "RobinCar", op = "==", version = "0.3.0"), quietly = T)
+robincar_available <- requireNamespace("RobinCar", quietly = T)
 
 if (robincar_available){
   test_that("Correct variance calculation for Ye's method matching RobinCar", {
@@ -66,6 +83,20 @@ if (robincar_available){
       )$contrast$varcov[1,1]
     )
   })
+
+
+  test_that("3-arm: Correct variance calculation for Ye's method matching RobinCar", {
+    expect_equal(
+      matrix(V1_3arm, nrow=3, ncol=3),
+      unname(RobinCar::robincar_glm(data.frame(fit_3arm$data),
+                                    response_col = "AVAL",
+                                    treat_col = "TRTPN",
+                                    formula = fit_3arm$formula,
+                                    g_family = fit_3arm$family)$varcov)
+    )
+  })
+
+
 } else {
   test_that("Correct variance calculation for Ye's method matching RobinCar", {
     expect_equal(
@@ -74,8 +105,26 @@ if (robincar_available){
     )
   })
 
+  test_that("3-arm: Correct variance calculation for Ye's method matching RobinCar", {
+    expect_equal(
+      matrix(V1_3arm, nrow=3, ncol=3),
+      matrix(c(2.652272364e-03, 2.576978801e-06, -5.244417729e-07,
+               2.576978801e-06, 2.303420439e-03,  1.053457633e-05,
+               -5.244417729e-07, 1.053457633e-05,  2.379076091e-03),
+             nrow=3, ncol=3)
+    )
+  })
+
 }
 
+
+# varcov must be symmetric
+test_that("Ye varcov is symmetric", {
+  expect_equal(
+    V1[lower.tri(V1)],
+    V1[upper.tri(V1)]
+  )
+})
 
 
 
@@ -85,23 +134,43 @@ fit2 <- glm(aval ~ trtp + bl_cov + bl_cov_c2, data = data01 |> transform(bl_cov_
   predict_counterfactuals(trt = "trtp") |>
   average_predictions()
 
-V2 <- estimate_varcov(fit2, method = "Ye", strata = "bl_cov_c2")$robust_varcov
+expect_warning(
+  V2 <- estimate_varcov(fit2, method = "Ye", strata = "bl_cov_c2")$robust_varcov,
+  "More than three unique values are found in stratification variable bl_cov_c2. Please double check if the correct stratification variables are supplied via `strata` argument.",
+  fixed = TRUE
+)
+
+V2_3arm <- estimate_varcov(fit_3arm, method = "Ye", strata = "SEX")$robust_varcov
 
 if (robincar_available){
-test_that("Correct variance calculation for Ye's method matcing RobinCar", {
-  expect_equal(
-    (t(gr) %*% V2 %*% gr)[1, 1],
-    RobinCar::robincar_glm(data.frame(fit2$data),
-      response_col = as.character(fit2$formula[2]),
-      treat_col = "trtp",
-      formula = fit2$formula,
-      car_strata_cols = "bl_cov_c2",
-      car_scheme = "permuted-block",
-      g_family = fit2$family,
-      contrast_h = "diff",
-    )$contrast$varcov[1,1]
-  )
-})
+  test_that("Correct variance calculation for Ye's method matcing RobinCar", {
+    expect_equal(
+      (t(gr) %*% V2 %*% gr)[1, 1],
+      RobinCar::robincar_glm(data.frame(fit2$data),
+                             response_col = as.character(fit2$formula[2]),
+                             treat_col = "trtp",
+                             formula = fit2$formula,
+                             car_strata_cols = "bl_cov_c2",
+                             car_scheme = "permuted-block",
+                             g_family = fit2$family,
+                             contrast_h = "diff",
+      )$contrast$varcov[1,1]
+    )
+  })
+
+  test_that("3-arm: Correct variance calculation for Ye-stratified method matching RobinCar", {
+    expect_equal(
+      matrix(V2_3arm, nrow=3, ncol=3),
+      unname(RobinCar::robincar_glm(data.frame(fit_3arm$data),
+                                    response_col = "AVAL",
+                                    treat_col = "TRTPN",
+                                    formula = fit_3arm$formula,
+                                    car_strata_cols = "SEX",
+                                    car_scheme = "permuted-block",
+                                    g_family = fit_3arm$family)$varcov)
+    )
+  })
+
 } else {
   test_that("Correct variance calculation for Ye's method matching RobinCar", {
     expect_equal(
@@ -110,7 +179,26 @@ test_that("Correct variance calculation for Ye's method matcing RobinCar", {
     )
   })
 
+
+  test_that("3-arm: Correct variance calculation for Ye-stratified method matching RobinCar", {
+    expect_equal(
+      matrix(V2_3arm, nrow=3, ncol=3),
+      matrix(c(2.622886513e-03, -7.797320489e-06, -4.923527008e-06,
+               -7.797320489e-06,  2.288915038e-03,  1.360521021e-05,
+               -4.923527008e-06,  1.360521021e-05,  2.376256827e-03),
+             nrow=3, ncol=3)
+    )
+  })
+
 }
+
+# varcov must be symmetric
+test_that("Ye-stratified varcov is symmetric", {
+  expect_equal(
+    V2[lower.tri(V2)],
+    V2[upper.tri(V2)]
+  )
+})
 
 
 
@@ -131,6 +219,15 @@ test_that("Correct variance calculation for Ye's method based on original manusc
   )
 })
 
+
+
+# varcov must be symmetric
+test_that("Ye-mod varcov is symmetric", {
+  expect_equal(
+    V3[lower.tri(V3)],
+    V3[upper.tri(V3)]
+  )
+})
 
 
 ## Ge ----------------------------------------------------------------------
@@ -179,11 +276,20 @@ ge_var_paper <- function(glmfit, trt) {
   return(difP(glmfit)$var[[1]])
 }
 
-V3 <- estimate_varcov(fit1, method = "Ge", type = "model-based")$robust_varcov
+V4 <- estimate_varcov(fit1, method = "Ge", type = "model-based")$robust_varcov
 
-test_that("Correct variance calculation for Ge's method matcing manuscript code", {
+test_that("Correct variance calculation for Ge's method matching manuscript code", {
   expect_equal(
-    (t(gr) %*% V3 %*% gr)[1, 1],
+    (t(gr) %*% V4 %*% gr)[1, 1],
     ge_var_paper(fit1, "trtp")
+  )
+})
+
+
+# varcov must be symmetric
+test_that("Ge varcov is symmetric", {
+  expect_equal(
+    V4[lower.tri(V4)],
+    V4[upper.tri(V4)]
   )
 })
