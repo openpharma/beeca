@@ -6,7 +6,7 @@
 \alias{beeca-package}
 \title{beeca: Binary Endpoint Estimation with Covariate Adjustment}
 \description{
-Performs estimation of marginal treatment effects for binary outcomes when using logistic regression working models with covariate adjustment (see discussions in Magirr et al (2024) \url{https://osf.io/9mp58/}). Implements the variance estimators of Ge et al (2011) \doi{10.1177/009286151104500409} and Ye et al (2023) \doi{10.1080/24754269.2023.2205802}.
+Performs estimation of marginal treatment effects for binary outcomes when using logistic regression working models with covariate adjustment (see Magirr et al (2025) \doi{10.1002/pst.70021}). Implements the variance estimators of Ge et al (2011) \doi{10.1177/009286151104500409} and Ye et al (2023) \doi{10.1080/24754269.2023.2205802}.
 }
 \seealso{
 Useful links:

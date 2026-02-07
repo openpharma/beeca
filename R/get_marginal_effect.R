@@ -27,7 +27,7 @@
 #' et al (2011) which is suitable for the variance estimation of conditional
 #' average treatment effect. The method `Ye` is based on Ye et al (2023) and is
 #' suitable for the variance estimation of population average treatment effect.
-#' For more details, see [Magirr et al. (2024)](https://osf.io/9mp58/).
+#' For more details, see Magirr et al. (2025) \doi{10.1002/pst.70021}.
 #'
 #' @param type a string indicating the type of
 #' variance estimator to use (only applicable for Ge's method). Supported types include HC0 (default),
@@ -61,6 +61,19 @@
 #'  marginal_se                \tab Standard error estimate of the marginal treatment effect estimate. \cr
 #'  marginal_results           \tab Analysis results data (ARD) containing a summary of the analysis for subsequent reporting. \cr
 #' }
+#' @seealso [predict_counterfactuals()] for generating counterfactual predictions
+#' @seealso [average_predictions()] for averaging counterfactual predictions
+#' @seealso [estimate_varcov()] for robust variance estimation
+#' @seealso [apply_contrast()] for computing treatment contrasts
+#' @seealso [beeca_fit()] for streamlined convenience wrapper
+#' @seealso [tidy.beeca()] for tidied parameter estimates
+#' @seealso [summary.beeca()] for detailed summary output
+#' @seealso [print.beeca()] for concise output
+#' @seealso [plot.beeca()] and [plot_forest()] for visualizations
+#' @seealso [augment.beeca()] for augmented data with predictions
+#' @seealso [as_gt()] for publication-ready tables
+#' @seealso [beeca_to_cards_ard()] for cards ARD integration
+#'
 #' @importFrom utils packageVersion
 #' @export
 #' @examples
@@ -122,6 +135,9 @@ get_marginal_effect <- function(object, trt, strata = NULL,
   object$marginal_results <- rbind(marginal_responses,
                                    marginal_contrasts) |> dplyr::as_tibble()
   object$marginal_results$ANALDESC <- paste0("Computed using beeca@", packageVersion("beeca"))
+
+  # Add beeca class to enable S3 methods (tidy, augment, etc.)
+  class(object) <- c("beeca", class(object))
 
   return(object)
 }

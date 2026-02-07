@@ -13,3 +13,12 @@ manifest.json
 ^\.github$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^\.claude$
+^CLAUDE\.MD$
+^ENHANCEMENTS\.md$
+^IMPLEMENTATION_PLAN\.md$
+^\.planning$
+^doc$
+^Meta$
+^README\.Rmd$
+^README\.html$

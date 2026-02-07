@@ -79,6 +79,14 @@ fit3$marginal_se
 
 }
 \seealso{
+\code{\link[=predict_counterfactuals]{predict_counterfactuals()}} for generating counterfactual predictions
+
+\code{\link[=average_predictions]{average_predictions()}} for averaging counterfactual predictions
+
+\code{\link[=estimate_varcov]{estimate_varcov()}} for robust variance estimation
+
 \code{\link[=get_marginal_effect]{get_marginal_effect()}} for estimating marginal effects directly
 from an original \code{\link[stats]{glm}} object
+
+\code{\link[=beeca_fit]{beeca_fit()}} for streamlined analysis pipeline
 }

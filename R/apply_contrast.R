@@ -41,8 +41,12 @@
 #' These appended component provide crucial information for interpreting
 #' the treatment effect using the specified contrast method.
 #'
+#' @seealso [predict_counterfactuals()] for generating counterfactual predictions
+#' @seealso [average_predictions()] for averaging counterfactual predictions
+#' @seealso [estimate_varcov()] for robust variance estimation
 #' @seealso [get_marginal_effect()] for estimating marginal effects directly
 #' from an original \code{\link[stats]{glm}} object
+#' @seealso [beeca_fit()] for streamlined analysis pipeline
 #'
 #' @examples
 #' trial01$trtp <- factor(trial01$trtp)
