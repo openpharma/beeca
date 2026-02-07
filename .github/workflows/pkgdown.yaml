@@ -34,13 +34,8 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::., margins=?ignore
+          extra-packages: any::pkgdown, local::.
           needs: website
-
-      - name: Install archived dependencies (margins)
-        run: |
-          R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/prediction/prediction_0.3.17.tar.gz")'
-          R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/margins/margins_0.3.26.tar.gz")'
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
